@@ -71,7 +71,7 @@ class TestS3(unittest.TestCase):
         """
         test basic bucket handling
         """
-        bucket_name = "com-dougfort-test-bucket"
+        bucket_name = "com-spideroak-test-bucket"
 
         # list all buckets, ours shouldn't be there
         bucket_in_list = False
@@ -130,7 +130,7 @@ class TestS3(unittest.TestCase):
         """
         test simple key 'from_string' and 'as_string' functions
         """
-        bucket_name = "com-dougfort-test-key-with-strings"
+        bucket_name = "com-spideroak-test-key-with-strings"
         key_name = u"test-key"
         test_string = _random_string(1024)
 
@@ -169,7 +169,7 @@ class TestS3(unittest.TestCase):
         test simple key 'from_file' and 'to_file' functions
         """
         log = logging.getLogger("test_key_with_files")
-        bucket_name = "com-dougfort-test-key-with-files"
+        bucket_name = "com-spideroak-test-key-with-files"
         key_name = "A" * 1024
         test_file_path = os.path.join(
             _test_dir_path, "test_key_with_files-orignal"
@@ -236,7 +236,7 @@ class TestS3(unittest.TestCase):
                     str(total_bytes)
 
         log = logging.getLogger("test_key_with_files")
-        bucket_name = "com-dougfort-test-key-with-files-and-callback"
+        bucket_name = "com-spideroak-test-key-with-files-and-callback"
         key_name = "A" * 1024
         test_file_path = os.path.join(
             _test_dir_path, "test_key_with_files-orignal"
@@ -300,7 +300,7 @@ class TestS3(unittest.TestCase):
         """
         test simple key with metadata added
         """
-        bucket_name = "com-dougfort-test-key-with-meta"
+        bucket_name = "com-spideroak-test-key-with-meta"
         key_name = u"test-key"
         test_string = _random_string(1024)
         meta_key = u"meta_key"
@@ -348,7 +348,7 @@ class TestS3(unittest.TestCase):
         test a simple multipart upload
         """
         log = logging.getLogger("test_simple_multipart")
-        bucket_name = "com-dougfort-test-simple-multipart"
+        bucket_name = "com-spideroak-test-simple-multipart"
         key_name = "test_key"
         test_file_path = os.path.join(
             _test_dir_path, "test_simple_multipart-orignal"
