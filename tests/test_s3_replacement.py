@@ -296,7 +296,7 @@ class TestS3(unittest.TestCase):
         # delete the bucket
         self._s3_connection.delete_bucket(bucket_name)
         
-    def xxxtest_key_with_meta(self):
+    def test_key_with_meta(self):
         """
         test simple key with metadata added
         """
@@ -343,9 +343,9 @@ class TestS3(unittest.TestCase):
         # delete the bucket
         self._s3_connection.delete_bucket(bucket_name)
         
-    def xxxtest_write_over_key_with_meta(self):
+    def test_write_over_key_with_meta(self):
         """
-        test that metadata persists when a key is written over
+        test that metadata does not persist when a key is written over
         """
         bucket_name = "com-spideroak-test-key-with-meta"
         key_name = u"test-key"
@@ -389,7 +389,7 @@ class TestS3(unittest.TestCase):
 
         # get the metadata
         returned_meta_value = read_key.get_metadata(meta_key)
-        self.assertEqual(returned_meta_value, meta_value)
+        self.assertEqual(returned_meta_value, None)
 
         # delete the key
         read_key.delete()

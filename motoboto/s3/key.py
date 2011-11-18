@@ -4,6 +4,7 @@ key.py
 
 simulate a boto Key object
 """
+import json
 import logging
 
 from lumberyard.http_connection import LumberyardHTTPError
@@ -250,7 +251,6 @@ class Key(object):
         if meta_key in self._metadata:
             return self._metadata[meta_key]
 
-        found = False
         method = "GET"
 
         if self._bucket is None:
@@ -261,8 +261,7 @@ class Key(object):
         http_connection = self._bucket.create_http_connection()
 
         kwargs = {
-            "action"            : "get_meta", 
-            "meta_key"          : meta_key,            
+            "action"            : "meta", 
         }
 
         uri = compute_uri("data", self._name, **kwargs)
@@ -271,21 +270,20 @@ class Key(object):
         try:
             response = http_connection.request(method, uri, body=None)
         except LumberyardHTTPError, instance:
-            if instance.status == 404: # not found
-                pass
-            else:
-                self._log.error(str(instance))
-                http_connection.close()
-                raise
-        else:
-            found = True
-        
-        if not found:
             http_connection.close()
-            raise KeyError(meta_key)
 
-        self._metadata[meta_key] = response.read()
+            if instance.status == 404: # not found
+                self._log.warn("key not found retrieving meta")
+                return None
+
+            self._log.error(str(instance))
+            raise
+        
+        data = response.read()
 
         http_connection.close()
-        return self._metadata[meta_key] 
+
+        self.update_metadata(json.loads(data))
+
+        return self._metadata.get(meta_key)
 
