@@ -16,11 +16,11 @@ from motoboto.s3.key import Key
 
 class Bucket(object):
     """
-    simulate a boto Bucket object
+    wraps a nimbus.io collection to simuate an S3 bucket
     """
-    def __init__(self, config, collection_name):
+    def __init__(self, identity, collection_name):
         self._log = logging.getLogger("Bucket(%s)" % (collection_name, ))
-        self._config = config
+        self._identity = identity
         self._collection_name = collection_name
 
     @property
@@ -28,7 +28,9 @@ class Bucket(object):
         return self._collection_name
 
     def get_all_keys(self):
-        """return a list of all keys in this bucket"""
+        """
+        return a list of all keys in this collection
+        """
         method = "GET"
 
         http_connection = self.create_http_connection()
@@ -43,36 +45,37 @@ class Bucket(object):
         return [Key(bucket=self, name=n) for n in data_list]
     
     def get_key(self, name):
-        """return a key object for the name"""
+        """
+        return a key object for the name
+        """
         return Key(bucket=self, name=name)
     
     def create_http_connection(self):
         """
-        create an HTTP connection with our name as the host
+        create an HTTP connection with our colection name as the host
         """
         return HTTPConnection(
             compute_collection_hostname(self._collection_name),
-            self._config.user_name,
-            self._config.auth_key,
-            self._config.auth_key_id
+            self._identity.user_name,
+            self._identity.auth_key,
+            self._identity.auth_key_id
         )
 
     def get_space_used(self):
         """
-        get disk space statistics for this bucket
+        get disk space statistics for this collection
         """
-
         http_connection = HTTPConnection(
             compute_default_hostname(),
-            self._config.user_name,
-            self._config.auth_key,
-            self._config.auth_key_id
+            self._identity.user_name,
+            self._identity.auth_key,
+            self._identity.auth_key_id
         )
         method = "GET"
         uri = compute_uri(
             "/".join([
                 "customers", 
-                self._config.user_name, 
+                self._identity.user_name, 
                 "collections",
                 self._collection_name
             ]),

@@ -1,25 +1,42 @@
 # -*- coding: utf-8 -*-
 """
-config.py
+You must give motboto 3 items to identify yourself as a valid user:
+ * user name
+ * authorization key id
+ * authorization key
 
-configuration information for motoboto
+You can have multiple authorization keys, so you must supply the key id to
+identify which one you are using.
+
 """
 from collections import namedtuple
 import os
 import os.path
 
-config_template = namedtuple(
-    "Config", ["user_name", "auth_key_id", "auth_key"]
+#: You can create an identity with::
+#:   
+#:    identity_template(username=<your name>,
+#:                      auth_key_id=<your auth key id>,
+#:                      auth_key=<your auth key>)
+#:
+identity_template = namedtuple(
+    "Identity", ["user_name", "auth_key_id", "auth_key"]
 )
 
-#TODO: locate the config in the proper place for the platform
-_config_path = os.path.expandvars("$HOME/.motoboto")
+#TODO: locate the identity in the proper place for the platform
+_identity_path = os.path.expandvars("$HOME/.motoboto")
 _user_name_env = "MOTOBOTO_USER_NAME"
 _auth_key_id_env = "MOTOBOTO_AUTH_KEY_ID"
 _auth_key_env = "MOTOBOTO_AUTH_KEY"
 
 
-def load_config_from_environment():
+def load_identity_from_environment():
+    """
+    Identity can come from environment variables:
+     * MOTOBOTO_USER_NAME
+     * MOTOBOTO_AUTH_KEY_ID
+     * MOTOBOTO_AUTH_KEY
+    """
     if not _user_name_env in os.environ:
         return None
     if not _auth_key_id_env in os.environ:
@@ -27,13 +44,20 @@ def load_config_from_environment():
     if not _auth_key_env in os.environ:
         return None
 
-    return config_template(
+    return identity_template(
         user_name=os.environ[_user_name_env],
         auth_key_id=os.environ[_auth_key_id_env],
         auth_key=os.environ[_auth_key_env]
     )
 
-def load_config_from_file(path=_config_path):
+def load_identity_from_file(path=_identity_path):
+    """
+    Identity can come from an identity file::
+
+        Username motoboto-test-01
+        AuthKeyId 43
+        AuthKey oMDMm54A4F5+ukVSSoZTOlDVAIhlywJI+x4lsLjLWfA
+    """
     user_name = None
     auth_key_id = None
     auth_key = None
@@ -59,7 +83,7 @@ def load_config_from_file(path=_config_path):
     if auth_key == None:
         return None
 
-    return config_template(
+    return identity_template(
         user_name=user_name,
         auth_key_id=auth_key_id,
         auth_key=auth_key

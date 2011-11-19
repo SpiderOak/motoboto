@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-key.py
-
 simulate a boto Key object
 """
 import json
@@ -19,7 +17,7 @@ _read_buffer_size = 64 * 1024
 
 class Key(object):
     """
-    simulate a boto Key object
+    wrap a nimbus.io key to simulate a boto Key object
     """
     def __init__(self, bucket=None, name=None):
         self._log = logging.getLogger("Key")
@@ -29,6 +27,9 @@ class Key(object):
         self._metadata = dict()
 
     def close(self):
+        """
+        close this key
+        """
         self._log.debug("closing")
 
     def _get_name(self):
@@ -90,7 +91,20 @@ class Key(object):
         self, data, replace=True, cb=None, cb_count=10
     ):
         """
-        store the content of the string in the lumberyard
+        data
+            the string to archive
+
+        replace
+            True if existing contents are to be written over. (this **must**
+            be True for motoboto)
+
+        cb
+            callback function for reporting progress
+
+        cb_count
+            number of callbacks to be made during the archvie process
+
+        archive the content of the string into nimbus.io
         """
         if self._bucket is None:
             raise ValueError("No bucket")
@@ -101,7 +115,7 @@ class Key(object):
         # stop them right here.
         if not replace:
             if self.exists():
-                raise KeyError("attempt to replace key %r" % (self._name))
+                raise KeyError("attempt to not replace key %r" % (self._name))
 
         kwargs = {}
         for meta_key, meta_value in self._metadata.items():
@@ -123,7 +137,21 @@ class Key(object):
         self, file_object, replace=True, cb=None, cb_count=10
     ):
         """
-        store the content of the file in lumberyard
+        file_object
+            a file-like object opened to the file to be archived. Must support
+            read().
+
+        replace
+            True if existing contents are to be written over. (this **must**
+            be True for motoboto)
+
+        cb
+            callback function for reporting progress
+
+        cb_count
+            number of callbacks to be made during the archvie process
+
+        archive the content of the file in nimbus.io
         """
         if self._bucket is None:
             raise ValueError("No bucket")
@@ -134,7 +162,7 @@ class Key(object):
         # stop them right here.
         if not replace:
             if self.exists():
-                raise KeyError("attempt to replace key %r" % (self._name))
+                raise KeyError("attempt to inot replace key %r" % (self._name))
 
         wrapper = None
         if cb is None:
@@ -159,7 +187,13 @@ class Key(object):
 
     def get_contents_as_string(self, cb=None, cb_count=10):
         """
-        return the contents from lumberyard as a string
+        cb
+            callback function for reporting progress
+
+        cb_count
+            number of callbacks to be made during the archvie process
+
+        retrieve the contents from nimbus.io as a string
         """
         if self._bucket is None:
             raise ValueError("No bucket")
@@ -187,7 +221,16 @@ class Key(object):
 
     def get_contents_to_file(self, file_object, cb=None, cb_count=10):
         """
-        return the contents from lumberyard to a file
+        file_object
+            Python file-like object, must support write()
+
+        cb
+            callback function for reporting progress
+
+        cb_count
+            number of callbacks to be made during the archvie process
+
+        retrieve the contents from nimbus.io to a file
         """
         if self._bucket is None:
             raise ValueError("No bucket")
@@ -221,7 +264,7 @@ class Key(object):
 
     def delete(self):
         """
-        delete this key from the system
+        delete this key from the nimbus.io collection
         """
         if self._bucket is None:
             raise ValueError("No bucket")
@@ -240,12 +283,29 @@ class Key(object):
         http_connection.close()
 
     def set_metadata(self, meta_key, meta_value):
+        """
+        meta_key
+            name of the meta item
+
+        meta_value
+            value of the meta item
+
+        add a key/value meta item to be associated wiht the key
+        """        
         self._metadata[meta_key] = meta_value
         
     def update_metadata(self, meta_dict):
+        """
+        add a dcitionary of meta itms to be associated with the key
+        """
         self._metadata.update(meta_dict)
 
     def get_metadata(self, meta_key):
+        """
+        return the meta_value associated with the meta_key
+        
+        returns None if the meta_key (or the key itself) does not exist.
+        """
 
         # If we have it local, pass it on
         if meta_key in self._metadata:

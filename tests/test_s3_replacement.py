@@ -41,7 +41,14 @@ def _random_string(size):
     return "".join([chr(random.randint(0, 255)) for _ in xrange(size)])
 
 class TestS3(unittest.TestCase):
-    """test S3 functionality"""
+    """
+    This is a test that motoboto emulates boto S3 functions.
+
+    This test can be run against either an Amazon AWS account or a nimbus.io
+    account based on the USE_MOTOBOTO environment variable.
+
+    Note that you will have to supply unique bucket names.
+    """
 
     def setUp(self):
         log = logging.getLogger("setUp")
