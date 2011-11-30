@@ -24,7 +24,8 @@ identity_template = namedtuple(
 )
 
 #TODO: locate the identity in the proper place for the platform
-_identity_path = os.path.expandvars("$HOME/.motoboto")
+_identity_path = os.environ.get('MOTOBOTO_IDENTITY', 
+    os.path.expandvars("$HOME/.motoboto"))
 _user_name_env = "MOTOBOTO_USER_NAME"
 _auth_key_id_env = "MOTOBOTO_AUTH_KEY_ID"
 _auth_key_env = "MOTOBOTO_AUTH_KEY"
