@@ -27,8 +27,27 @@ class Bucket(object):
     def name(self):
         return self._collection_name
 
-    def get_all_keys(self):
+    def get_all_keys(
+        self, max_keys=1000, prefix=None, marker=None, delimiter=None
+    ):
         """
+        max_keys
+            The maximum number of keys to retrieve
+
+        prefix
+            The prefix of the keys you want to retrieve
+
+        marker 
+            where you are in the result set
+
+        delimiter
+        
+            Keys that contain the same string between the prefix and the 
+            first occurrence of the delimiter will be rolled up into a single 
+            result element. 
+
+            These rolled-up keys are not returned elsewhere in the response.
+
         return a list of all keys in this collection
         """
         method = "GET"
