@@ -14,7 +14,10 @@ import random
 import shutil
 from cStringIO import StringIO
 import sys
-import unittest
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 if os.environ.get("USE_MOTOBOTO", "0") == "1":
     import motoboto as boto
@@ -74,6 +77,7 @@ class TestS3(unittest.TestCase):
         if os.path.exists(_test_dir_path):
             shutil.rmtree(_test_dir_path)
 
+    @unittest.skip("isolate list")
     def test_bucket(self):
         """
         test basic bucket handling
@@ -133,6 +137,8 @@ class TestS3(unittest.TestCase):
                 bucket_in_list = True
         self.assertFalse(bucket_in_list)
 
+
+    @unittest.skip("isolate list")
     def test_key_with_strings(self):
         """
         test simple key 'from_string' and 'as_string' functions
@@ -171,6 +177,7 @@ class TestS3(unittest.TestCase):
         # delete the bucket
         self._s3_connection.delete_bucket(bucket_name)
         
+    @unittest.skip("isolate list")
     def test_key_with_files(self):
         """
         test simple key 'from_file' and 'to_file' functions
@@ -230,6 +237,7 @@ class TestS3(unittest.TestCase):
         # delete the bucket
         self._s3_connection.delete_bucket(bucket_name)
         
+    @unittest.skip("isolate list")
     def test_key_with_files_and_callback(self):
         """
         test simple key 'from_file' and 'to_file' functions
@@ -303,6 +311,7 @@ class TestS3(unittest.TestCase):
         # delete the bucket
         self._s3_connection.delete_bucket(bucket_name)
         
+    @unittest.skip("isolate list")
     def test_key_with_meta(self):
         """
         test simple key with metadata added
@@ -350,6 +359,7 @@ class TestS3(unittest.TestCase):
         # delete the bucket
         self._s3_connection.delete_bucket(bucket_name)
         
+    @unittest.skip("isolate list")
     def test_write_over_key_with_meta(self):
         """
         test that metadata does not persist when a key is written over
@@ -404,8 +414,180 @@ class TestS3(unittest.TestCase):
         
         # delete the bucket
         self._s3_connection.delete_bucket(bucket_name)
+
+    @unittest.skip("isolate list")
+    def test_get_all_keys_empty_bucket(self):
+        """
+        test get_all_keys() on an empty buckey
+        """
+        bucket_name = "com-spideroak-test-get-all-keys"
+
+        # create the bucket
+        bucket = self._s3_connection.create_bucket(bucket_name)
+        self.assertTrue(bucket is not None)
+        self.assertEqual(bucket.name, bucket_name)
+
+        # try a simple get_all_keys()
+        result = bucket.get_all_keys()
+        self.assertEqual(result, [])
+
+        # delete the bucket
+        self._s3_connection.delete_bucket(bucket_name)
+
+    @unittest.skip("isolate list")
+    def test_get_all_keys_max_keys(self):
+        """
+        test that the max keys parameter restricts the number of keys
+        """
+        bucket_name = "com-spideroak-test-get-all-keys"
+        key_names = [u"test-key1", u"test_key2", u"test_key3", ]
+
+        # create the bucket
+        bucket = self._s3_connection.create_bucket(bucket_name)
+        self.assertTrue(bucket is not None)
+        self.assertEqual(bucket.name, bucket_name)
         
-    def xxxtest_simple_multipart(self):
+        # create some keys
+        keys = list()
+        for key_name in key_names:
+            key = Key(bucket)
+
+            # set the name
+            key.name = key_name
+
+            # upload some data
+            test_string = _random_string(1024)
+            key.set_contents_from_string(test_string)        
+            self.assertTrue(key.exists())
+
+            keys.append(key)
+        
+        result = bucket.get_all_keys(max_keys=2)
+        self.assertEqual(len(result), 2)
+
+        # delete the keys
+        for key in keys:
+            key.delete()
+            self.assertFalse(key.exists())
+        
+        # delete the bucket
+        self._s3_connection.delete_bucket(bucket_name)
+        
+    @unittest.skip("isolate list")
+    def test_get_all_keys_tree(self):
+        """
+        test storing and retrieving a directory tree
+        """
+        bucket_name = "com-spideroak-test-get-all-keys"
+        # 2011-12-04 -- s3 clips leading slash
+        key_names = [
+            u"aaa/b/cccc/1", 
+            u"aaa/b/ccccccccc/1", 
+            u"aaa/b/ccccccccc/2", 
+            u"aaa/b/ccccccccc/3", 
+            u"aaa/b/dddd/1", 
+            u"aaa/b/dddd/2", 
+            u"aaa/e/ccccccccc/1", 
+            u"fff/e/ccccccccc/1", 
+        ]
+
+        # create the bucket
+        bucket = self._s3_connection.create_bucket(bucket_name)
+        self.assertTrue(bucket is not None)
+        self.assertEqual(bucket.name, bucket_name)
+        
+        # create some keys
+        keys = list()
+        for key_name in key_names:
+            key = Key(bucket)
+
+            # set the name
+            key.name = key_name
+
+            # upload some data
+            test_string = _random_string(1024)
+            key.set_contents_from_string(test_string)        
+            self.assertTrue(key.exists())
+
+            keys.append(key)
+        
+        result = bucket.get_all_keys(prefix=u"aaa")
+        self.assertEqual(len(result), 7)
+
+        result = bucket.get_all_keys(prefix=u"aaa/b")
+        self.assertEqual(len(result), 6)
+
+        result = bucket.get_all_keys(prefix=u"aaa/b/ccccccccc/")
+        self.assertEqual(len(result), 3)
+
+        result = bucket.get_all_keys(prefix=u"aaa/b/dddd")
+        self.assertEqual(len(result), 2)
+
+        result = bucket.get_all_keys(prefix=u"aaa/e")
+        self.assertEqual(len(result), 1)
+
+        # delete the keys
+        for key in keys:
+            key.delete()
+            self.assertFalse(key.exists())
+        
+        # delete the bucket
+        self._s3_connection.delete_bucket(bucket_name)
+        
+    def test_delimiter(self):
+        """
+        test using a delimiter
+        """
+        log = logging.getLogger("test_delimiter")
+        bucket_name = "com-spideroak-test-get-all-keys"
+        # 2011-12-04 -- s3 clips leading slash
+        key_names = [
+            u"aaa/b/cccc/1", 
+            u"aaa/b/ccccccccc/1", 
+            u"aaa/b/ccccccccc/2", 
+            u"aaa/b/ccccccccc/3", 
+            u"aaa/b/dddd/1", 
+            u"aaa/b/dddd/2", 
+            u"aaa/e/ccccccccc/1", 
+            u"fff/e/ccccccccc/1", 
+        ]
+
+        # create the bucket
+        bucket = self._s3_connection.create_bucket(bucket_name)
+        self.assertTrue(bucket is not None)
+        self.assertEqual(bucket.name, bucket_name)
+        
+        # create some keys
+        keys = list()
+        for key_name in key_names:
+            key = Key(bucket)
+
+            # set the name
+            key.name = key_name
+
+            # upload some data
+            test_string = _random_string(1024)
+            key.set_contents_from_string(test_string)        
+            self.assertTrue(key.exists())
+
+            keys.append(key)
+        
+        result = bucket.get_all_keys(delimiter="/")
+        result_names = set()
+        for prefix_entry in result:
+            result_names.add(prefix_entry.name)
+        self.assertEqual(result_names, set([u"aaa/", u"fff/"]))
+
+        # delete the keys
+        for key in keys:
+            key.delete()
+            self.assertFalse(key.exists())
+        
+        # delete the bucket
+        self._s3_connection.delete_bucket(bucket_name)
+        
+    @unittest.skip("isolate list")
+    def test_simple_multipart(self):
         """
         test a simple multipart upload
         """
