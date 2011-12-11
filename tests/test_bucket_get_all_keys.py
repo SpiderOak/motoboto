@@ -24,6 +24,30 @@ else:
 
 from test_util import test_dir_path, initialize_logging
 
+def _create_some_keys(bucket, key_names):
+    keys = list()
+    for key_name in key_names:
+        key = Key(bucket)
+
+        # set the name
+        key.name = key_name
+
+        # upload some data
+        test_string = os.urandom(1024)
+        key.set_contents_from_string(test_string)        
+
+        keys.append(key)
+
+    return keys 
+
+def _clear_keys(bucket):
+    for key in bucket.get_all_keys():
+        key.delete()
+
+def _clear_bucket(s3_connection, bucket):
+    _clear_keys(bucket)
+    s3_connection.delete_bucket(bucket.name)
+
 class TestBucketGetAllKeys(unittest.TestCase):
     """
     This is a test that motoboto emulates boto S3 functions.
@@ -68,13 +92,13 @@ class TestBucketGetAllKeys(unittest.TestCase):
         bucket = self._s3_connection.create_bucket(bucket_name)
         self.assertTrue(bucket is not None)
         self.assertEqual(bucket.name, bucket_name)
+        _clear_keys(bucket)
 
         # try a simple get_all_keys()
         result = bucket.get_all_keys()
         self.assertEqual(result, [])
 
-        # delete the bucket
-        self._s3_connection.delete_bucket(bucket_name)
+        _clear_bucket(self._s3_connection, bucket)
 
     def test_get_all_keys_max_keys(self):
         """
@@ -87,32 +111,14 @@ class TestBucketGetAllKeys(unittest.TestCase):
         bucket = self._s3_connection.create_bucket(bucket_name)
         self.assertTrue(bucket is not None)
         self.assertEqual(bucket.name, bucket_name)
+        _clear_keys(bucket)
         
-        # create some keys
-        keys = list()
-        for key_name in key_names:
-            key = Key(bucket)
-
-            # set the name
-            key.name = key_name
-
-            # upload some data
-            test_string = os.urandom(1024)
-            key.set_contents_from_string(test_string)        
-            self.assertTrue(key.exists())
-
-            keys.append(key)
+        keys = _create_some_keys(bucket, key_names)
         
         result = bucket.get_all_keys(max_keys=2)
         self.assertEqual(len(result), 2)
 
-        # delete the keys
-        for key in keys:
-            key.delete()
-            self.assertFalse(key.exists())
-        
-        # delete the bucket
-        self._s3_connection.delete_bucket(bucket_name)
+        _clear_bucket(self._s3_connection, bucket)
         
     def test_get_all_keys_tree(self):
         """
@@ -135,21 +141,9 @@ class TestBucketGetAllKeys(unittest.TestCase):
         bucket = self._s3_connection.create_bucket(bucket_name)
         self.assertTrue(bucket is not None)
         self.assertEqual(bucket.name, bucket_name)
+        _clear_keys(bucket)
         
-        # create some keys
-        keys = list()
-        for key_name in key_names:
-            key = Key(bucket)
-
-            # set the name
-            key.name = key_name
-
-            # upload some data
-            test_string = os.urandom(1024)
-            key.set_contents_from_string(test_string)        
-            self.assertTrue(key.exists())
-
-            keys.append(key)
+        keys = _create_some_keys(bucket, key_names)
         
         result = bucket.get_all_keys(prefix=u"aaa")
         self.assertEqual(len(result), 7)
@@ -166,13 +160,7 @@ class TestBucketGetAllKeys(unittest.TestCase):
         result = bucket.get_all_keys(prefix=u"aaa/e")
         self.assertEqual(len(result), 1)
 
-        # delete the keys
-        for key in keys:
-            key.delete()
-            self.assertFalse(key.exists())
-        
-        # delete the bucket
-        self._s3_connection.delete_bucket(bucket_name)
+        _clear_bucket(self._s3_connection, bucket)
         
     def test_delimiter(self):
         """
@@ -195,21 +183,9 @@ class TestBucketGetAllKeys(unittest.TestCase):
         bucket = self._s3_connection.create_bucket(bucket_name)
         self.assertTrue(bucket is not None)
         self.assertEqual(bucket.name, bucket_name)
+        _clear_keys(bucket)
         
-        # create some keys
-        keys = list()
-        for key_name in key_names:
-            key = Key(bucket)
-
-            # set the name
-            key.name = key_name
-
-            # upload some data
-            test_string = os.urandom(1024)
-            key.set_contents_from_string(test_string)        
-            self.assertTrue(key.exists())
-
-            keys.append(key)
+        keys = _create_some_keys(bucket, key_names)
         
         result = bucket.get_all_keys(delimiter="/")
         result_names = set()
@@ -217,13 +193,49 @@ class TestBucketGetAllKeys(unittest.TestCase):
             result_names.add(prefix_entry.name)
         self.assertEqual(result_names, set([u"aaa/", u"fff/"]))
 
-        # delete the keys
-        for key in keys:
-            key.delete()
-            self.assertFalse(key.exists())
+        prefix = u"aaa/"
+        result = bucket.get_all_keys(prefix=prefix, delimiter="/")
+        result_names = set()
+        for prefix_entry in result:
+            result_names.add(prefix_entry.name[len(prefix):])
+        self.assertEqual(result_names, set([u"b/", u"e/"]))
+
+        _clear_bucket(self._s3_connection, bucket)
         
-        # delete the bucket
-        self._s3_connection.delete_bucket(bucket_name)
+    def test_marker(self):
+        """
+        test using a marker
+        """
+        bucket_name = "com-spideroak-test-get-all-keys"
+        # 2011-12-04 -- s3 clips leading slash
+        key_names = [
+            u"aaa/b/cccc/1", 
+            u"aaa/b/ccccccccc/1", 
+            u"aaa/b/ccccccccc/2", 
+            u"aaa/b/ccccccccc/3", 
+            u"aaa/b/dddd/1", 
+            u"aaa/b/dddd/2", 
+            u"aaa/e/ccccccccc/1", 
+            u"fff/e/ccccccccc/1", 
+        ]
+
+        # create the bucket
+        bucket = self._s3_connection.create_bucket(bucket_name)
+        self.assertTrue(bucket is not None)
+        self.assertEqual(bucket.name, bucket_name)
+        _clear_keys(bucket)
+        
+        keys = _create_some_keys(bucket, key_names)
+        
+        cutoff = len(key_names) / 2
+
+        result1 = bucket.get_all_keys(max_keys=cutoff)
+        self.assertEqual(len(result1), cutoff)
+
+        result2 = bucket.get_all_keys(marker=result1[-1].name)
+        self.assertEqual(len(result1) + len(result2), len(key_names))
+
+        _clear_bucket(self._s3_connection, bucket)
         
 if __name__ == "__main__":
     initialize_logging()
