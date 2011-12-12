@@ -21,7 +21,7 @@ if os.environ.get("USE_MOTOBOTO", "0") == "1":
 else:
     import boto
 
-from test_util import test_dir_path, initialize_logging
+from tests.test_util import test_dir_path, initialize_logging
 
 class TestBucket(unittest.TestCase):
     """

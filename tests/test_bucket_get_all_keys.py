@@ -22,7 +22,7 @@ else:
     import boto
     from boto.s3.key import Key
 
-from test_util import test_dir_path, initialize_logging
+from tests.test_util import test_dir_path, initialize_logging
 
 def _create_some_keys(bucket, key_names):
     keys = list()

@@ -24,7 +24,7 @@ else:
     import boto
     from boto.s3.key import Key
 
-from test_util import test_dir_path, initialize_logging
+from tests.test_util import test_dir_path, initialize_logging
 
 class TestMultipart(unittest.TestCase):
     """

@@ -18,13 +18,21 @@ except ImportError:
 if os.environ.get("USE_MOTOBOTO", "0") == "1":
     import motoboto as boto
     from motoboto.s3.key import Key
-    from mbotoboto.s3.bucketlistresultset import BucketListResultSet
+    from motoboto.s3.bucketlistresultset import BucketListResultSet
 else:
     import boto
     from boto.s3.key import Key
     from boto.s3.bucketlistresultset import BucketListResultSet
 
-from test_util import test_dir_path, initialize_logging
+from tests.test_util import test_dir_path, initialize_logging
+
+def _clear_keys(bucket):
+    for key in bucket.get_all_keys():
+        key.delete()
+
+def _clear_bucket(s3_connection, bucket):
+    _clear_keys(bucket)
+    s3_connection.delete_bucket(bucket.name)
 
 class TestBucketGetAllKeys(unittest.TestCase):
     """

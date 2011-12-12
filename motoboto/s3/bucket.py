@@ -12,6 +12,7 @@ from lumberyard.http_util import compute_default_hostname, \
         compute_uri
 from lumberyard.http_connection import HTTPConnection
 
+from motoboto.s3.bucketlistresultset import BucketListResultSet
 from motoboto.s3.key import Key
 
 class Bucket(object):
@@ -28,7 +29,7 @@ class Bucket(object):
         return self._collection_name
 
     def get_all_keys(
-        self, max_keys=1000, prefix=None, marker=None, delimiter=None
+        self, max_keys=1000, prefix="", marker="", delimiter=""
     ):
         """
         max_keys
@@ -54,7 +55,17 @@ class Bucket(object):
 
         http_connection = self.create_http_connection()
 
-        uri = compute_uri("data/")
+        kwargs = {
+            "max_keys" : max_keys,
+        }
+        if prefix != "" and prefix is not None: 
+            kwargs["prefix"] = prefix
+        if marker != "" and marker is not None: 
+            kwargs["marker"] = marker
+        if delimiter != "" and delimiter is not None: 
+            kwargs["delimiter"] = delimiter
+
+        uri = compute_uri("data/", **kwargs)
 
         response = http_connection.request(method, uri)
         
@@ -62,6 +73,26 @@ class Bucket(object):
         http_connection.close()
         data_list = json.loads(data)
         return [Key(bucket=self, name=n) for n in data_list]
+
+    def list(self, prefix="", delimiter="", marker=""):
+        """
+        prefix
+            The prefix of the keys you want to retrieve
+
+        marker 
+            where you are in the result set
+
+        delimiter
+        
+            Keys that contain the same string between the prefix and the 
+            first occurrence of the delimiter will be rolled up into a single 
+            result element. 
+
+            These rolled-up keys are not returned elsewhere in the response.
+
+        return a BucketListResultSet object
+        """
+        return BucketListResultSet(self, prefix, delimiter, marker)
     
     def get_key(self, name):
         """

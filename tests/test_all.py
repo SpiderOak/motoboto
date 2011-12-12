@@ -8,7 +8,7 @@ import os
 import re
 import unittest
 
-from test_util import initialize_logging
+from tests.test_util import initialize_logging
 
 _test_re = re.compile("test_.+?\.py$", re.IGNORECASE)
 _filename_to_module = lambda f: os.path.splitext(f)[0]
