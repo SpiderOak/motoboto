@@ -91,7 +91,7 @@ class TestBucketGetAllKeys(unittest.TestCase):
 
     def test_get_all_keys(self):
         """
-        test that the max keys parameter restricts the number of keys
+        test that we can retriev e all keys
         """
         bucket_name = "com-spideroak-test-get-all-keys"
         key_names = [u"test-key1", u"test_key2", u"test_key3", ]

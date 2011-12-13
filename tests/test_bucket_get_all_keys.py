@@ -106,6 +106,7 @@ class TestBucketGetAllKeys(unittest.TestCase):
         """
         bucket_name = "com-spideroak-test-get-all-keys"
         key_names = [u"test-key1", u"test_key2", u"test_key3", ]
+        test_max = len(key_names) - 1
 
         # create the bucket
         bucket = self._s3_connection.create_bucket(bucket_name)
@@ -114,9 +115,11 @@ class TestBucketGetAllKeys(unittest.TestCase):
         _clear_keys(bucket)
         
         keys = _create_some_keys(bucket, key_names)
-        
-        result = bucket.get_all_keys(max_keys=2)
-        self.assertEqual(len(result), 2)
+
+        result = bucket.get_all_keys(max_keys=test_max)
+        self.assertTrue(len(result) <= test_max)
+        for key in result:
+            self.asseertIn(key.name, key_names)
 
         _clear_bucket(self._s3_connection, bucket)
         
@@ -191,13 +194,13 @@ class TestBucketGetAllKeys(unittest.TestCase):
         result_names = set()
         for prefix_entry in result:
             result_names.add(prefix_entry.name)
-        self.assertEqual(result_names, set([u"aaa/", u"fff/"]))
+        self.assertEqual(result_names, set([u"aaa/", u"fff/"]), result_names)
 
         prefix = u"aaa/"
         result = bucket.get_all_keys(prefix=prefix, delimiter="/")
         result_names = set()
         for prefix_entry in result:
-            result_names.add(prefix_entry.name[len(prefix):])
+            result_names.add(prefix_entry.name)
         self.assertEqual(result_names, set([u"b/", u"e/"]))
 
         _clear_bucket(self._s3_connection, bucket)
@@ -218,6 +221,7 @@ class TestBucketGetAllKeys(unittest.TestCase):
             u"aaa/e/ccccccccc/1", 
             u"fff/e/ccccccccc/1", 
         ]
+        test_max = 3
 
         # create the bucket
         bucket = self._s3_connection.create_bucket(bucket_name)
@@ -227,13 +231,18 @@ class TestBucketGetAllKeys(unittest.TestCase):
         
         keys = _create_some_keys(bucket, key_names)
         
-        cutoff = len(key_names) / 2
+        test_marker = ""
+        result_names = list()
+        while True:
+            result = bucket.get_all_keys(max_keys=test_max, marker=test_marker)
+            if len(result) == 0:
+                break
+            self.assertTrue(len(result) <= test_max)
+            result_names.extend([key.name for key in result])
+            test_marker=result[-1].name
 
-        result1 = bucket.get_all_keys(max_keys=cutoff)
-        self.assertEqual(len(result1), cutoff)
-
-        result2 = bucket.get_all_keys(marker=result1[-1].name)
-        self.assertEqual(len(result1) + len(result2), len(key_names))
+        self.assertEqual(len(result_names), len(key_names))
+        self.assertEqual(set(result_names), set(key_names))
 
         _clear_bucket(self._s3_connection, bucket)
         
