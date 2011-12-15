@@ -16,8 +16,8 @@ class BucketListResultSet(object):
         self._marker = marker
 
     def __iter__(self):
-        done = False
-        while not done:
+        more_data = True
+        while more_data:
             result = self._bucket.get_all_keys(
                 prefix=self._prefix, 
                 delimiter=self._delimiter, 
@@ -25,8 +25,9 @@ class BucketListResultSet(object):
             )
 
             if len(result) == 0 or self._delimiter != "":
-                done = True
+                more_data = False
             else:
+                more_data = result.truncated
                 self._marker = result[-1].name
 
             for key in result:

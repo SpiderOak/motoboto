@@ -15,6 +15,24 @@ from lumberyard.http_connection import HTTPConnection
 from motoboto.s3.bucketlistresultset import BucketListResultSet
 from motoboto.s3.key import Key
 
+class Prefix(object):
+    """
+    represent a prefix derived from use of the delimiter argument to 
+    get_all_keys
+    """
+    def __init__(self, bucket, name):
+        self.bucket = bucket
+        self.name = name
+
+class TruncatableList(list):
+    """
+    A list of Keys that has the additional attribute 'truncated', indicating
+    that more Keys can be listed.
+    """
+    def __init__(self, *args, **kwargs):
+        super(TruncatableList, self).__init__(*args, **kwargs)
+        self.truncated = False
+
 class Bucket(object):
     """
     wraps a nimbus.io collection to simuate an S3 bucket
@@ -36,7 +54,7 @@ class Bucket(object):
             The maximum number of keys to retrieve
 
         prefix
-            The prefix of the keys you want to retrieve
+            The prfix of the keys you want to retrieve
 
         marker 
             where you are in the result set
@@ -49,7 +67,11 @@ class Bucket(object):
 
             These rolled-up keys are not returned elsewhere in the response.
 
-        return a list of all keys in this collection
+        return 
+            TruncatableList : a list of Keys() with an additional attribute
+            `truncated`. If truncated is True, ithere are more keys avaialoble 
+            to list. To get them, call get_all_keys again with 'marker' set 
+            to the name of the last key in the list
         """
         method = "GET"
 
@@ -64,6 +86,56 @@ class Bucket(object):
             kwargs["marker"] = marker
         if delimiter != "" and delimiter is not None: 
             kwargs["delimiter"] = delimiter
+
+        uri = compute_uri("data/", **kwargs)
+
+        response = http_connection.request(method, uri)
+        
+        data = response.read()
+        http_connection.close()
+        data_dict = json.loads(data)
+
+        if "keys" in data_dict:
+            result_list = TruncatableList(
+                [Key(bucket=self, name=k) for k in data_dict["keys"]]
+            ) 
+        elif "prefixes" in data_dict:
+            result_list = TruncatableList(
+                [Prefix(bucket=self, name=p) for p in data_dict["prefixes"]]
+            )
+        else:
+            raise ValueError("Unexpected retruen value %s" % (data_dict, ))
+
+        result_list.truncated = data_dict["truncated"]
+        return result_list
+
+    def get_all_multipart_uploads(
+        self, max_uploads=1000, key_marker="", upload_id_marker=""
+    ):
+        """
+        max_uploadss
+            The maximum number of keys to retrieve
+
+        key_marker
+            The retrieve starts on the next key after this one
+
+        upload_id_marker 
+            if key_marker is specfied, only include uploads with upload_id
+            greater than this value
+
+        return a list of all keys in this collection
+        """
+        method = "GET"
+
+        http_connection = self.create_http_connection()
+
+        kwargs = {
+            "max_uploads" : max_uploads,
+        }
+        if key_marker != "" and key_marker is not None: 
+            kwargs["key_marker"] = key_marker
+        if upload_id_marker != "" and upload_id_marker is not None: 
+            kwargs["upload_id_marker"] = upload_id_marker
 
         uri = compute_uri("data/", **kwargs)
 
