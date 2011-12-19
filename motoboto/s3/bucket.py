@@ -137,14 +137,20 @@ class Bucket(object):
         if upload_id_marker != "" and upload_id_marker is not None: 
             kwargs["upload_id_marker"] = upload_id_marker
 
-        uri = compute_uri("data/", **kwargs)
+        uri = compute_uri("conjoined/", **kwargs)
 
         response = http_connection.request(method, uri)
         
         data = response.read()
         http_connection.close()
-        data_list = json.loads(data)
-        return [Key(bucket=self, name=n) for n in data_list]
+
+        data_dict = json.loads(data)
+        result_list = TruncatableList(
+            [Key(bucket=self, name=n) for n in data_dict["conjoined_list"]]
+        )
+        result_list.truncated = data_dict["truncated"]
+
+        return result_list
 
     def list(self, prefix="", delimiter="", marker=""):
         """
