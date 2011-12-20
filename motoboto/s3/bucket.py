@@ -216,3 +216,30 @@ class Bucket(object):
     
         return json.loads(data)
 
+    def initiate_multipart_upload(self, key_name):
+        """
+        key_name
+            the key name
+
+        """
+        kwargs = {
+            "action" : "start"
+        }
+        # TODO: boto allows meta data here
+
+        method = "POST"
+        uri = compute_uri("conjoined", key_name, **kwargs)
+
+        http_connection = self.create_http_connection()
+
+        self._log.info("posting %s" % (uri, ))
+        response = http_connection.request(method, uri)
+        
+        data = response.read()
+
+        http_connection.close()
+
+        result_dict = json.loads(data)
+        return result_dict["conjoined_identifier_hex"]
+
+
