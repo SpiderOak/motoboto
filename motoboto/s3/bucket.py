@@ -14,6 +14,7 @@ from lumberyard.http_connection import HTTPConnection
 
 from motoboto.s3.bucketlistresultset import BucketListResultSet
 from motoboto.s3.key import Key
+from motoboto.s3.multipart import MultiPartUpload
 
 class Prefix(object):
     """
@@ -145,8 +146,9 @@ class Bucket(object):
         http_connection.close()
 
         data_dict = json.loads(data)
-        result_list = TruncatableList(
-            [Key(bucket=self, name=n) for n in data_dict["conjoined_list"]]
+        result_list = TruncatableList()
+        for conjoined_dict in data_dict["conjoined_list"]:
+            result_list.append(MultiPartUpload(bucket=self, **conjoined_dict)
         )
         result_list.truncated = data_dict["truncated"]
 
