@@ -242,6 +242,6 @@ class Bucket(object):
         http_connection.close()
 
         result_dict = json.loads(data)
-        return result_dict["conjoined_identifier_hex"]
 
+        return MultiPartUpload(bucket=self, **result_dict)
 

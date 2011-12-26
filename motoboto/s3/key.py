@@ -88,7 +88,13 @@ class Key(object):
         return found
 
     def set_contents_from_string(
-        self, data, replace=True, cb=None, cb_count=10
+        self, 
+        data, 
+        replace=True, 
+        cb=None, 
+        cb_count=10, 
+        multipart_id=None,
+        part_num=0
     ):
         """
         data
@@ -104,6 +110,12 @@ class Key(object):
         cb_count
             number of callbacks to be made during the archvie process
 
+        multipart_id
+            identifier of multipart upload
+
+        part_num
+            part number of multipart upload
+
         archive the content of the string into nimbus.io
         """
         if self._bucket is None:
@@ -117,7 +129,10 @@ class Key(object):
             if self.exists():
                 raise KeyError("attempt to not replace key %r" % (self._name))
 
-        kwargs = {}
+        kwargs = {
+            "conjoined_identifier"  : multipart_id,
+            "conjoined_part"        : part_num
+        }
         for meta_key, meta_value in self._metadata.items():
             kwargs["".join([meta_prefix, meta_key])] = meta_value
 
@@ -134,7 +149,13 @@ class Key(object):
         http_connection.close()
 
     def set_contents_from_file(
-        self, file_object, replace=True, cb=None, cb_count=10
+        self, 
+        file_object, 
+        replace=True, 
+        cb=None, 
+        cb_count=10,
+        multipart_id=None,
+        part_num=0
     ):
         """
         file_object
@@ -150,6 +171,12 @@ class Key(object):
 
         cb_count
             number of callbacks to be made during the archvie process
+
+        multipart_id
+            identifier of multipart upload
+
+        part_num
+            part number of multipart upload
 
         archive the content of the file in nimbus.io
         """
@@ -171,7 +198,10 @@ class Key(object):
             body = ReadReporter(file_object)
             wrapper = ArchiveCallbackWrapper(body, cb, cb_count) 
 
-        kwargs = {}
+        kwargs = {
+            "conjoined_identifier"  : multipart_id,
+            "conjoined_part"        : part_num
+        }
         for meta_key, meta_value in self._metadata:
             kwargs["".join([meta_prefix, meta_key])] = meta_value
 

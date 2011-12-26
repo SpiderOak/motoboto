@@ -101,6 +101,15 @@ class MultiPartUpload(object):
 
         Upload a part of this MultiPart Upload.
         """
+        key = self._bucket.get_key(self.key_name)
+        key.set_contents_from_file(
+            fp, 
+            replace=replace, 
+            cb=cb, 
+            cb_count=num_cb,
+            multipart_id=self._conjoined_identifier.hex,
+            part_num=part_num
+        )
 
 class Part(object):
     """
