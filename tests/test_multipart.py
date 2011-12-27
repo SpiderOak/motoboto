@@ -74,17 +74,11 @@ class TestMultipart(unittest.TestCase):
         retrieve_path = os.path.join(test_dir_path, "retrieve_multipart")
         # 5mb is the minimum size s3 will take 
         test_file_size = 1024 ** 2 * 5
-        buffer_size = 1024
+        test_blobs = [os.urandom(test_file_size) for _ in range(part_count)]
 
-        for test_file_path in test_file_paths:
-            log.debug("writing %s bytes to %s" % (
-                test_file_size, test_file_path, 
-            ))
-            bytes_written = 0
+        for test_file_path, test_blob in zip(test_file_paths, test_blobs):
             with open(test_file_path, "w") as output_file:
-                while bytes_written < test_file_size:
-                    output_file.write(os.urandom(buffer_size))
-                    bytes_written += buffer_size
+                output_file.write(test_blob)
 
         # create the bucket
         bucket = self._s3_connection.create_bucket(bucket_name)
@@ -116,7 +110,11 @@ class TestMultipart(unittest.TestCase):
         with open(retrieve_path, "w") as output_file:
             key.get_contents_to_file(output_file)
 
-        # TODO: compare files
+        # compare files
+        with open(retrieve_path, "r") as input_file:
+            for test_blob in test_blobs:
+                retrieve_blob = input_file.read(test_file_size)
+                self.assertEqual(retrieve_blob, test_blob, "compare files")
 
         # delete the key
         key.delete()
