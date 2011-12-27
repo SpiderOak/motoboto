@@ -10,7 +10,6 @@ import logging
 import os
 import os.path
 import shutil
-from cStringIO import StringIO
 import sys
 try:
     import unittest2 as unittest
@@ -67,22 +66,25 @@ class TestMultipart(unittest.TestCase):
         log = logging.getLogger("test_simple_multipart")
         bucket_name = "com-spideroak-test-simple-multipart"
         key_name = "test_key"
-        test_file_path = os.path.join(
-            test_dir_path, "test_simple_multipart-orignal"
-        )
         part_count = 2
+        path_template = os.path.join(
+            test_dir_path, "test_simple_multipart_%02d"
+        )
+        test_file_paths = [path_template % (n+1, ) for n in range(part_count)]
+        retrieve_path = os.path.join(test_dir_path, "retrieve_multipart")
         # 5mb is the minimum size s3 will take 
-        test_file_size = 1024 ** 2 * 5 * part_count
+        test_file_size = 1024 ** 2 * 5
         buffer_size = 1024
 
-        log.debug("writing %s bytes to %s" % (
-            test_file_size, test_file_path, 
-        ))
-        bytes_written = 0
-        with open(test_file_path, "w") as output_file:
-            while bytes_written < test_file_size:
-                output_file.write(os.urandom(buffer_size))
-                bytes_written += buffer_size
+        for test_file_path in test_file_paths:
+            log.debug("writing %s bytes to %s" % (
+                test_file_size, test_file_path, 
+            ))
+            bytes_written = 0
+            with open(test_file_path, "w") as output_file:
+                while bytes_written < test_file_size:
+                    output_file.write(os.urandom(buffer_size))
+                    bytes_written += buffer_size
 
         # create the bucket
         bucket = self._s3_connection.create_bucket(bucket_name)
@@ -102,21 +104,21 @@ class TestMultipart(unittest.TestCase):
         self.assertEqual(upload_list[0].id, multipart_upload.id)
 
         # upload a file in pieces
-        current_pos = 0
-        part_size = int(test_file_size / part_count)
-        for index in range(part_count):
+        for index, test_file_path in enumerate(test_file_paths):
             with open(test_file_path, "r") as input_file:
-                input_file.seek(current_pos)
-                data = input_file.read(part_size)
-            upload_file = StringIO(data)
-            multipart_upload.upload_part_from_file(upload_file, index+1)
+                multipart_upload.upload_part_from_file(input_file, index+1)
 
         # complete the upload
         completed_upload = multipart_upload.complete_upload()
         print >> sys.stderr, dir(completed_upload)
 
-        # delete the key
         key = Key(bucket, key_name)
+        with open(retrieve_path, "w") as output_file:
+            key.get_contents_to_file(output_file)
+
+        # TODO: compare files
+
+        # delete the key
         key.delete()
         
         # delete the bucket
