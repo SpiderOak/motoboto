@@ -16,10 +16,10 @@ try:
 except ImportError:
     import unittest
 
-if os.environ.get("USE_MOTOBOTO", "0") == "1":
-    import motoboto as boto
-else:
+if os.environ.get("USE_BOTO", "0") == "1":
     import boto
+else:
+    import motoboto as boto
 
 from tests.test_util import test_dir_path, initialize_logging
 

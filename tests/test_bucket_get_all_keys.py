@@ -15,12 +15,12 @@ try:
 except ImportError:
     import unittest
 
-if os.environ.get("USE_MOTOBOTO", "0") == "1":
-    import motoboto as boto
-    from motoboto.s3.key import Key
-else:
+if os.environ.get("USE_BOTO", "0") == "1":
     import boto
     from boto.s3.key import Key
+else:
+    import motoboto as boto
+    from motoboto.s3.key import Key
 
 from tests.test_util import test_dir_path, initialize_logging
 
