@@ -119,7 +119,7 @@ class TestBucketGetAllKeys(unittest.TestCase):
         result = bucket.get_all_keys(max_keys=test_max)
         self.assertTrue(len(result) <= test_max)
         for key in result:
-            self.asseertIn(key.name, key_names)
+            self.assertIn(key.name, key_names)
 
         _clear_bucket(self._s3_connection, bucket)
         
@@ -201,7 +201,7 @@ class TestBucketGetAllKeys(unittest.TestCase):
         result_names = set()
         for prefix_entry in result:
             result_names.add(prefix_entry.name)
-        self.assertEqual(result_names, set([u"b/", u"e/"]))
+        self.assertEqual(result_names, set([u"aaa/b/", u"aaa/e/"]))
 
         _clear_bucket(self._s3_connection, bucket)
         
