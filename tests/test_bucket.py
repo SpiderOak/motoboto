@@ -28,7 +28,7 @@ class TestBucket(unittest.TestCase):
     This is a test that motoboto emulates boto S3 functions.
 
     This test can be run against either an Amazon AWS account or a nimbus.io
-    account based on the USE_MOTOBOTO environment variable.
+    account based on the USE_BOTO environment variable.
 
     Note that you will have to supply unique bucket names.
     """
