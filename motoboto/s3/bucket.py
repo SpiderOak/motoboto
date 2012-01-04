@@ -19,7 +19,7 @@ from motoboto.s3.multipart import MultiPartUpload
 class Prefix(object):
     """
     represent a prefix derived from use of the delimiter argument to 
-    get_all_keys
+    get_all_keys, or get_all_versions
     """
     def __init__(self, bucket, name):
         self.bucket = bucket
@@ -89,6 +89,79 @@ class Bucket(object):
             kwargs["delimiter"] = delimiter
 
         uri = compute_uri("data/", **kwargs)
+
+        response = http_connection.request(method, uri)
+        
+        data = response.read()
+        http_connection.close()
+        data_dict = json.loads(data)
+
+        if "keys" in data_dict:
+            result_list = TruncatableList(
+                [Key(bucket=self, name=k) for k in data_dict["keys"]]
+            ) 
+        elif "prefixes" in data_dict:
+            result_list = TruncatableList(
+                [Prefix(bucket=self, name=p) for p in data_dict["prefixes"]]
+            )
+        else:
+            raise ValueError("Unexpected retruen value %s" % (data_dict, ))
+
+        result_list.truncated = data_dict["truncated"]
+        return result_list
+
+    def get_all_versions(
+        self, 
+        max_keys=1000, 
+        prefix="", 
+        key_marker="", 
+        version_id_marker="", 
+        delimiter=""
+    ):
+        """
+        max_keys
+            The maximum number of keys to retrieve
+
+        prefix
+            The prfix of the keys you want to retrieve
+
+        key_marker 
+            where you are in the result set, keys
+
+        version_id_marker 
+            where you are in the result set, versions
+
+        delimiter
+        
+            Keys that contain the same string between the prefix and the 
+            first occurrence of the delimiter will be rolled up into a single 
+            result element. 
+
+            These rolled-up keys are not returned elsewhere in the response.
+
+        return 
+            TruncatableList : a list of Keys() with an additional attribute
+            `truncated`. If truncated is True, ithere are more keys avaialoble 
+            to list. To get them, call get_all_keys again with 'marker' set 
+            to the name of the last key in the list
+        """
+        method = "GET"
+
+        http_connection = self.create_http_connection()
+
+        kwargs = {
+            "max_keys" : max_keys,
+        }
+        if prefix != "" and prefix is not None: 
+            kwargs["prefix"] = prefix
+        if key_marker != "" and key_marker is not None: 
+            kwargs["key_marker"] = key_marker
+        if version_id_marker != "" and version_id_marker is not None: 
+            kwargs["version_id_marker"] = version_id_marker
+        if delimiter != "" and delimiter is not None: 
+            kwargs["delimiter"] = delimiter
+
+        uri = compute_uri("/?versions", **kwargs)
 
         response = http_connection.request(method, uri)
         
