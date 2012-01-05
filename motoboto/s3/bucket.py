@@ -96,16 +96,17 @@ class Bucket(object):
         http_connection.close()
         data_dict = json.loads(data)
 
-        if "keys" in data_dict:
+        if "key_data" in data_dict:
             result_list = TruncatableList(
-                [Key(bucket=self, name=k) for k in data_dict["keys"]]
+                [Key(bucket=self, name=d["key"]) \
+                 for d in data_dict["key_data"]]
             ) 
         elif "prefixes" in data_dict:
             result_list = TruncatableList(
                 [Prefix(bucket=self, name=p) for p in data_dict["prefixes"]]
             )
         else:
-            raise ValueError("Unexpected retruen value %s" % (data_dict, ))
+            raise ValueError("Unexpected return value %s" % (data_dict, ))
 
         result_list.truncated = data_dict["truncated"]
         return result_list
@@ -169,16 +170,17 @@ class Bucket(object):
         http_connection.close()
         data_dict = json.loads(data)
 
-        if "keys" in data_dict:
+        if "key_data" in data_dict:
             result_list = TruncatableList(
-                [Key(bucket=self, name=k) for k in data_dict["keys"]]
+                [Key(bucket=self, name=d["key"]) \
+                 for d in data_dict["key_data"]]
             ) 
         elif "prefixes" in data_dict:
             result_list = TruncatableList(
                 [Prefix(bucket=self, name=p) for p in data_dict["prefixes"]]
             )
         else:
-            raise ValueError("Unexpected retruen value %s" % (data_dict, ))
+            raise ValueError("Unexpected return value %s" % (data_dict, ))
 
         result_list.truncated = data_dict["truncated"]
         return result_list
