@@ -42,9 +42,15 @@ class Key(object):
     name = property(_get_name, _set_name)
     key = property(_get_name, _set_name)
 
+    def __str__(self):
+        return self.name
+
     def _get_size(self):
         """key size."""
         return self._size
+
+    def _repr__(self):
+        return "/".join([self._bucket.name, self.name, ])
 
     def _set_size(self, value):
         self._size = value
@@ -123,15 +129,10 @@ class Key(object):
         if self._name is None:
             raise ValueError("No name")
 
-        # 2011-08-07 dougfort -- If they don't want to replace,
-        # stop them right here.
-        if not replace:
-            if self.exists():
-                raise KeyError("attempt to not replace key %r" % (self._name))
-
         kwargs = {
             "conjoined_identifier"  : multipart_id,
-            "conjoined_part"        : part_num
+            "conjoined_part"        : part_num,
+            "replace"               : str(replace),
         }
         for meta_key, meta_value in self._metadata.items():
             kwargs["".join([meta_prefix, meta_key])] = meta_value

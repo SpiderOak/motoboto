@@ -47,6 +47,9 @@ class Bucket(object):
     def name(self):
         return self._collection_name
 
+    def __str__(self):
+        return self.name
+
     def get_all_keys(
         self, max_keys=1000, prefix="", marker="", delimiter=""
     ):

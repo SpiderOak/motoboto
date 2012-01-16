@@ -60,6 +60,28 @@ class TestKey(unittest.TestCase):
         if os.path.exists(test_dir_path):
             shutil.rmtree(test_dir_path)
 
+    def test_retrieve_nonexistent_key(self):
+        """
+        test retrieving a key that doesn't exist
+        """
+        bucket_name = "com-spideroak-test-key-with-strings"
+        key_name = u"test-key"
+        test_string = os.urandom(1024)
+
+        # create the bucket
+        bucket = self._s3_connection.create_bucket(bucket_name)
+        self.assertTrue(bucket is not None)
+        self.assertEqual(bucket.name, bucket_name)
+
+        read_key = Key(bucket, key_name)
+
+        # read back the data
+        returned_string = read_key.get_contents_as_string()      
+        self.assertEqual(returned_string, test_string)
+
+        # delete the bucket
+        self._s3_connection.delete_bucket(bucket_name)
+        
     def test_key_with_strings(self):
         """
         test simple key 'from_string' and 'as_string' functions

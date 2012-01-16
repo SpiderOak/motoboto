@@ -48,7 +48,7 @@ def _clear_bucket(s3_connection, bucket):
     _clear_keys(bucket)
     s3_connection.delete_bucket(bucket.name)
 
-class TestBucketGetAllKeys(unittest.TestCase):
+class TestBucketGetAllVersions(unittest.TestCase):
     """
     This is a test that motoboto emulates boto S3 functions.
 
@@ -96,7 +96,7 @@ class TestBucketGetAllKeys(unittest.TestCase):
 
         # try a simple get_all_versions()
         result = bucket.get_all_versions()
-        self.assertEqual(result, [])
+        self.assertEqual(result, [], [str(x) for x in result])
 
         _clear_bucket(self._s3_connection, bucket)
 
