@@ -20,9 +20,7 @@ class MultiPartUpload(object):
 
     def __init__(self, bucket=None, **kwargs ):
         self._bucket = bucket
-        self._conjoined_identifier = uuid.UUID(
-            hex=kwargs["conjoined_identifier_hex"]
-        )
+        self._conjoined_identifier = kwargs["conjoined_identifier"]
         self.key_name = kwargs["key"]
         self.create_timestamp = parse_timestamp_repr(
             kwargs["create_timestamp"]
@@ -56,7 +54,7 @@ class MultiPartUpload(object):
 
     @property
     def id(self):
-        return self._conjoined_identifier.hex
+        return self._conjoined_identifier
 
     def cancel_upload(self):
         """
@@ -107,7 +105,7 @@ class MultiPartUpload(object):
             replace=replace, 
             cb=cb, 
             cb_count=num_cb,
-            multipart_id=self._conjoined_identifier.hex,
+            multipart_id=self._conjoined_identifier,
             part_num=part_num
         )
 
