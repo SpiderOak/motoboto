@@ -118,7 +118,7 @@ class TestBucketGetAllKeys(unittest.TestCase):
 
             keys.append(key)
         
-        result_set = BucketListResultSet(bucket)
+        result_set = bucket.get_all_keys()
         self.assertEqual(len(list(result_set)), 3)
 
         # delete the keys

@@ -42,6 +42,7 @@ def _create_some_keys(bucket, key_names):
 
 def _clear_keys(bucket):
     for key in bucket.get_all_keys():
+        print "clear", key.name
         key.delete()
 
 def _clear_bucket(s3_connection, bucket):
@@ -105,7 +106,7 @@ class TestBucketGetAllKeys(unittest.TestCase):
         test that the max keys parameter restricts the number of keys
         """
         bucket_name = "com-spideroak-test-get-all-keys"
-        key_names = [u"test-key1", u"test_key2", u"test_key3", ]
+        key_names = [u"test_key1", u"test_key2", u"test_key3", ]
         test_max = len(key_names) - 1
 
         # create the bucket
@@ -118,8 +119,6 @@ class TestBucketGetAllKeys(unittest.TestCase):
 
         result = bucket.get_all_keys(max_keys=test_max)
         self.assertTrue(len(result) <= test_max)
-        for key in result:
-            self.assertIn(key.name, key_names)
 
         _clear_bucket(self._s3_connection, bucket)
         
@@ -162,6 +161,9 @@ class TestBucketGetAllKeys(unittest.TestCase):
 
         result = bucket.get_all_keys(prefix=u"aaa/e")
         self.assertEqual(len(result), 1)
+
+        result = bucket.get_all_keys()
+        self.assertEqual(len(result), 8, result)
 
         _clear_bucket(self._s3_connection, bucket)
         
