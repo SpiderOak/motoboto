@@ -24,7 +24,8 @@ if os.environ.get("USE_BOTO", "0") == "1":
 else:
     import motoboto as boto
     from motoboto.s3.key import Key
-    from lumberyard.http_connection import HTTPException as http_exception
+    from lumberyard.http_connection import LumberyardHTTPError \
+            as http_exception
 
 from tests.test_util import test_dir_path, initialize_logging
 
