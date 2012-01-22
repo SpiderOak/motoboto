@@ -20,9 +20,11 @@ except ImportError:
 if os.environ.get("USE_BOTO", "0") == "1":
     import boto
     from boto.s3.key import Key
+    from boto.exception import S3ResponseError as http_exception
 else:
     import motoboto as boto
     from motoboto.s3.key import Key
+    from lumberyard.http_connection import HTTPException as http_exception
 
 from tests.test_util import test_dir_path, initialize_logging
 
@@ -76,8 +78,7 @@ class TestKey(unittest.TestCase):
         read_key = Key(bucket, key_name)
 
         # read back the data
-        returned_string = read_key.get_contents_as_string()      
-        self.assertEqual(returned_string, test_string)
+        self.assertRaises(http_exception, read_key.get_contents_as_string)
 
         # delete the bucket
         self._s3_connection.delete_bucket(bucket_name)
