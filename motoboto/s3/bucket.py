@@ -38,17 +38,43 @@ class Bucket(object):
     """
     wraps a nimbus.io collection to simuate an S3 bucket
     """
-    def __init__(self, identity, collection_name):
+    def __init__(self, identity, collection_name, versioning=False):
         self._log = logging.getLogger("Bucket(%s)" % (collection_name, ))
         self._identity = identity
         self._collection_name = collection_name
+        self._versioning = versioning
 
     @property
     def name(self):
         return self._collection_name
 
+    @property
+    def versioning(self):
+        return self._versioning
+
     def __str__(self):
         return self.name
+
+    def configure_versioning(self, versioning):
+        """
+        set the bucket's versioning property to True or False
+        """
+        kwargs = {
+            "versioning" : repr(versioning) 
+        }
+
+        method = "PUT"
+        uri = compute_uri("/", **kwargs)
+
+        http_connection = self.create_http_connection()
+
+        self._log.info("putting %s" % (uri, ))
+        response = http_connection.request(method, uri)
+        
+        response.read()
+
+        http_connection.close()
+
 
     def get_all_keys(
         self, max_keys=1000, prefix="", marker="", delimiter=""
