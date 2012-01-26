@@ -286,11 +286,11 @@ class Bucket(object):
         """
         return BucketListResultSet(self, prefix, delimiter, marker)
     
-    def get_key(self, name):
+    def get_key(self, name, version_id=None):
         """
         return a key object for the name
         """
-        return Key(bucket=self, name=name)
+        return Key(bucket=self, name=name, version_id=version_id)
     
     def create_http_connection(self):
         """

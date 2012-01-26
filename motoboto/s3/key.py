@@ -23,7 +23,7 @@ class Key(object):
         self._log = logging.getLogger("Key")
         self._bucket = bucket
         self._name = name
-        self._version_id = None
+        self._version_id = version_id
         self._size = None
         self._metadata = dict()
 
@@ -105,7 +105,7 @@ class Key(object):
         cb=None, 
         cb_count=10, 
         multipart_id=None,
-        part_num=0
+        part_num=0,
     ):
         """
         data
@@ -221,13 +221,18 @@ class Key(object):
         
         response.read()
 
-    def get_contents_as_string(self, cb=None, cb_count=10):
+    def get_contents_as_string(self, cb=None, cb_count=10, version_id=None):
         """
         cb
             callback function for reporting progress
 
         cb_count
             number of callbacks to be made during the archvie process
+
+        version_id
+            the identifier of a specific version to retrieve
+
+            None means retrieve the most recent version
 
         retrieve the contents from nimbus.io as a string
         """
@@ -236,8 +241,12 @@ class Key(object):
         if self._name is None:
             raise ValueError("No name")
 
+        kwargs = {
+            "version_identifier"    : version_id,
+        }
+
         method = "GET"
-        uri = compute_uri("data", self._name)
+        uri = compute_uri("data", self._name, **kwargs)
 
         http_connection = self._bucket.create_http_connection()
 
@@ -255,7 +264,9 @@ class Key(object):
 
         return "".join(body_list)
 
-    def get_contents_to_file(self, file_object, cb=None, cb_count=10):
+    def get_contents_to_file(
+        self, file_object, cb=None, cb_count=10, version_id=None
+    ):
         """
         file_object
             Python file-like object, must support write()
@@ -266,6 +277,11 @@ class Key(object):
         cb_count
             number of callbacks to be made during the archvie process
 
+        version_id
+            identifier of a specific version to retrieve
+
+            None means retrieve the most recent version
+
         retrieve the contents from nimbus.io to a file
         """
         if self._bucket is None:
@@ -273,8 +289,12 @@ class Key(object):
         if self._name is None:
             raise ValueError("No name")
 
+        kwargs = {
+            "version_identifier" : version_id,
+        }
+
         method = "GET"
-        uri = compute_uri("data", self._name)
+        uri = compute_uri("data", self._name, **kwargs)
 
         http_connection = self._bucket.create_http_connection()
 
@@ -298,7 +318,7 @@ class Key(object):
         reporter.finish()
         http_connection.close()
 
-    def delete(self):
+    def delete(self, version_id=None):
         """
         delete this key from the nimbus.io collection
         """
@@ -307,8 +327,12 @@ class Key(object):
         if self._name is None:
             raise ValueError("No name")
 
+        kwargs = {
+            "version_identifier" : version_id,
+        }
+
         method = "DELETE"
-        uri = compute_uri("data", self._name)
+        uri = compute_uri("data", self._name, **kwargs)
 
         http_connection = self._bucket.create_http_connection()
 
