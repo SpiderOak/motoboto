@@ -126,10 +126,14 @@ class Bucket(object):
         data_dict = json.loads(data)
 
         if "key_data" in data_dict:
-            result_list = TruncatableList(
-                [Key(bucket=self, name=d["key"]) \
-                 for d in data_dict["key_data"]]
-            ) 
+            result_list = TruncatableList()
+            for key_entry in data_dict["key_data"]:
+                key = Key(
+                    bucket=self, 
+                    name=key_entry["key"], 
+                    version_id=key_entry["version_identifier"]
+                )
+                result_list.append(key)
         elif "prefixes" in data_dict:
             result_list = TruncatableList(
                 [Prefix(bucket=self, name=p) for p in data_dict["prefixes"]]
@@ -200,10 +204,14 @@ class Bucket(object):
         data_dict = json.loads(data)
 
         if "key_data" in data_dict:
-            result_list = TruncatableList(
-                [Key(bucket=self, name=d["key"]) \
-                 for d in data_dict["key_data"]]
-            ) 
+            result_list = TruncatableList()
+            for key_entry in data_dict["key_data"]:
+                key = Key(
+                    bucket=self, 
+                    name=key_entry["key"], 
+                    version_id=key_entry["version_identifier"]
+                )
+                result_list.append(key)
         elif "prefixes" in data_dict:
             result_list = TruncatableList(
                 [Prefix(bucket=self, name=p) for p in data_dict["prefixes"]]

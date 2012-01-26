@@ -19,10 +19,11 @@ class Key(object):
     """
     wrap a nimbus.io key to simulate a boto Key object
     """
-    def __init__(self, bucket=None, name=None):
+    def __init__(self, bucket=None, name=None, version_id=None):
         self._log = logging.getLogger("Key")
         self._bucket = bucket
         self._name = name
+        self._version_id = None
         self._size = None
         self._metadata = dict()
 
@@ -41,6 +42,10 @@ class Key(object):
 
     name = property(_get_name, _set_name)
     key = property(_get_name, _set_name)
+
+    @property
+    def version_id(self):
+        return self._version_id
 
     def __str__(self):
         return self.name
