@@ -128,6 +128,8 @@ class Key(object):
             part number of multipart upload
 
         archive the content of the string into nimbus.io
+        
+        sets version_id attribute after successful archive
         """
         if self._bucket is None:
             raise ValueError("No bucket")
@@ -150,9 +152,11 @@ class Key(object):
         self._log.info("posting %s" % (uri, ))
         response = http_connection.request(method, uri, body=data)
         
-        response.read()
-
+        response_str = response.read()
         http_connection.close()
+
+        response_dict = json.loads(response_str)
+        self._version_id = response_dict["version_identifier"]
 
     def set_contents_from_file(
         self, 
@@ -219,7 +223,11 @@ class Key(object):
         self._log.info("requesting POST %s" % (uri, ))
         response = http_connection.request(method, uri, body=body)
         
-        response.read()
+        response_str = response.read()
+        http_connection.close()
+
+        response_dict = json.loads(response_str)
+        self._version_id = response_dict["version_identifier"]
 
     def get_contents_as_string(self, cb=None, cb_count=10, version_id=None):
         """
