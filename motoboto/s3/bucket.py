@@ -15,6 +15,7 @@ from lumberyard.http_connection import HTTPConnection
 from motoboto.s3.bucketlistresultset import BucketListResultSet
 from motoboto.s3.key import Key
 from motoboto.s3.multipart import MultiPartUpload
+from motoboto.s3.util import parse_timestamp_repr
 
 class Prefix(object):
     """
@@ -131,7 +132,10 @@ class Bucket(object):
                 key = Key(
                     bucket=self, 
                     name=key_entry["key"], 
-                    version_id=key_entry["version_identifier"]
+                    version_id=key_entry["version_identifier"],
+                    last_modified=parse_timestamp_repr(
+                        key_entry["timestamp_repr"]
+                    )
                 )
                 result_list.append(key)
         elif "prefixes" in data_dict:
@@ -265,6 +269,9 @@ class Bucket(object):
         result_list.truncated = data_dict["truncated"]
 
         return result_list
+
+    def __iter__(self):
+        return iter(self.list())
 
     def list(self, prefix="", delimiter="", marker=""):
         """

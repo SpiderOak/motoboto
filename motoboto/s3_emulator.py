@@ -52,6 +52,13 @@ class S3Emulator(object):
         """
         self._log.debug("closing")
 
+    def get_bucket(self, bucket_name):
+        """
+        get the contents of an existing nimbus.io collection, 
+        similar to an s3 bucket
+        """
+        return Bucket(self._identity, bucket_name.decode("utf-8"))
+
     def create_bucket(self, bucket_name):
         """
         create a nimbus.io collection, similar to an s3 bucket
