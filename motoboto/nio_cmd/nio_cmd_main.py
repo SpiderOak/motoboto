@@ -16,11 +16,13 @@ from motoboto.nio_cmd.argument_parser import parse_arguments, usage, \
         cmd_list_bucket, \
         cmd_remove_key, \
         cmd_copy_file_to_nimbusio, \
-        cmd_copy_stdin_to_nimbusio
+        cmd_copy_stdin_to_nimbusio, \
+        cmd_copy_nimbusio_to_file
 from motoboto.nio_cmd.bucket_lister import list_all_buckets, list_bucket
 from motoboto.nio_cmd.key_commands import remove_key, \
         copy_file_to_nimbusio, \
-        copy_stdin_to_nimbusio
+        copy_stdin_to_nimbusio, \
+        copy_nimbusio_to_file
 
 _log_format = '%(asctime)s %(name)-12s: %(levelname)-8s %(message)s'
 
@@ -44,6 +46,7 @@ _dispatch_table = {
     cmd_remove_key              : remove_key,
     cmd_copy_file_to_nimbusio   : copy_file_to_nimbusio,
     cmd_copy_stdin_to_nimbusio  : copy_stdin_to_nimbusio,
+    cmd_copy_nimbusio_to_file   : copy_nimbusio_to_file,
 }
 
 def main():

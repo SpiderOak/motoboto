@@ -11,6 +11,7 @@ cmd_list_bucket = "list-bucket"
 cmd_remove_key = "remove-key"
 cmd_copy_file_to_nimbusio = "copy-file-to-nimbusio"
 cmd_copy_stdin_to_nimbusio = "copy-stdin-to-nimbusio"
+cmd_copy_nimbusio_to_file = "copy-nimbusio-to-file"
 
 usage = """
 # list keys in bucket 
@@ -24,10 +25,6 @@ nio_cmd rm bucket_name key_name
 nio_cmd cp filename.ext nimbus.io://bucket_name/key_name  
 
 # copy the contents of key_name in bucket_name mylocalfile.ext
-nio_cmd cp nimbus.io://bucket_name/key_name mylocalfile.ext 
-
-# copy the contents of key_name in bucket_name to the local file
-# mylocalfile.ext
 nio_cmd cp nimbus.io://bucket_name/key_name mylocalfile.ext 
 
 # copy a key from one nimbus.io location to another
@@ -46,19 +43,30 @@ nio_cmd mv s3://bucket_name/key_name nimbusio://bucket_name/key_name
 _separator = "/"
 
 _nimbusio_file_type = "nimbus.io://"
+_s3_file_type = "s3://"
 _stdin_file_type = "-"
 
-def _parse_nimbusio_file_type(text):
-    """
-    accept "nimbus.io//<bucket-name>/key-name"
-    return (bucket_name, key_name, )
-    """
-    assert text.startswith(_nimbusio_file_type)
-    text = text[len(_nimbusio_file_type):]
+def _parse_bucket_path(text):
     result = text.split(_separator, 1)
     assert len(result) == 2
     (bucket_name, key_name, ) = result
     return (bucket_name, key_name, )
+
+def _parse_nimbusio_file_type(text):
+    """
+    accept "nimbus.io://<bucket-name>/key-name"
+    return (bucket_name, key_name, )
+    """
+    assert text.startswith(_nimbusio_file_type)
+    return _parse_bucket_path(text[len(_nimbusio_file_type):])
+
+def _parse_s3_file_type(text):
+    """
+    accept "s3://<bucket-name>/key-name"
+    return (bucket_name, key_name, )
+    """
+    assert text.startswith(_s3_file_type)
+    return _parse_bucket_path(text[len(_s3_file_type):])
 
 def _parse_ls(args):
     if len(args) == 0:
@@ -90,6 +98,14 @@ def _parse_cp(args):
     if dest.startswith(_nimbusio_file_type):
         dest_bucket, dest_key = _parse_nimbusio_file_type(dest)
         return (cmd_copy_file_to_nimbusio, [source, dest_bucket, dest_key])
+
+    if source.startswith(_nimbusio_file_type) and \
+       dest.startswith(_nimbusio_file_type):
+        pass
+
+    if source.startswith(_nimbusio_file_type):
+        source_bucket, source_key = _parse_nimbusio_file_type(source)
+        return (cmd_copy_nimbusio_to_file, [source_bucket, source_key, dest])
 
     raise ValueError("Unparsable cp arguments {0}".format(args)) 
 

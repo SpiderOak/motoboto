@@ -19,7 +19,7 @@ def copy_file_to_nimbusio(
 ):
     dest_bucket = motoboto_connection.get_bucket(dest_bucket_name)
     dest_key = dest_bucket.get_key(dest_key_name)
-    with open(source_path) as source_file:
+    with open(source_path, "rb") as source_file:
         dest_key.set_contents_from_file(source_file)
 
 def copy_stdin_to_nimbusio(
@@ -30,4 +30,12 @@ def copy_stdin_to_nimbusio(
     dest_bucket = motoboto_connection.get_bucket(dest_bucket_name)
     dest_key = dest_bucket.get_key(dest_key_name)
     dest_key.set_contents_from_string(sys.stdin.read())
+
+def copy_nimbusio_to_file(
+    motoboto_connection, source_bucket_name, source_key_name, dest_path
+):
+    source_bucket = motoboto_connection.get_bucket(source_bucket_name)
+    source_key = source_bucket.get_key(source_key_name)
+    with open(dest_path, "wb") as dest_file:
+        source_key.get_contents_to_file(dest_file)
 
