@@ -8,6 +8,9 @@ import sys
 
 cmd_list_all_buckets = "list-all_buckets"
 cmd_list_bucket = "list-bucket"
+cmd_remove_key = "remove-key"
+cmd_copy_file_to_nimbusio = "copy-file-to-nimbusio"
+cmd_copy_stdin_to_nimbusio = "copy-stdin-to-nimbusio"
 
 usage = """
 # list keys in bucket 
@@ -40,6 +43,23 @@ nio_cmd cp nimbusio://bucket_name/key_name s3://bucket_name/key_name
 nio_cmd mv s3://bucket_name/key_name nimbusio://bucket_name/key_name 
 """
 
+_separator = "/"
+
+_nimbusio_file_type = "nimbus.io://"
+_stdin_file_type = "-"
+
+def _parse_nimbusio_file_type(text):
+    """
+    accept "nimbus.io//<bucket-name>/key-name"
+    return (bucket_name, key_name, )
+    """
+    assert text.startswith(_nimbusio_file_type)
+    text = text[len(_nimbusio_file_type):]
+    result = text.split(_separator, 1)
+    assert len(result) == 2
+    (bucket_name, key_name, ) = result
+    return (bucket_name, key_name, )
+
 def _parse_ls(args):
     if len(args) == 0:
         return (cmd_list_all_buckets, args, )
@@ -50,10 +70,28 @@ def _parse_ls(args):
     raise ValueError("must ls with no arguments or with a single bucket name")
 
 def _parse_rm(args):
-    pass
+    if len(args) == 2:
+        return (cmd_remove_key, args, )
+
+    raise ValueError("Expecting rm <bucket-name> <key-name> '{0}'".format(
+        args
+    ))
 
 def _parse_cp(args):
-    pass
+    if len(args) != 2:
+        raise ValueError("Expecting cp <source> <dest> '{0}'".format(args))
+
+    source, dest = args
+
+    if source == _stdin_file_type and dest.startswith(_nimbusio_file_type):
+        dest_bucket, dest_key = _parse_nimbusio_file_type(dest)
+        return (cmd_copy_stdin_to_nimbusio, [dest_bucket, dest_key, ])
+
+    if dest.startswith(_nimbusio_file_type):
+        dest_bucket, dest_key = _parse_nimbusio_file_type(dest)
+        return (cmd_copy_file_to_nimbusio, [source, dest_bucket, dest_key])
+
+    raise ValueError("Unparsable cp arguments {0}".format(args)) 
 
 def _parse_mv(args):
     pass
