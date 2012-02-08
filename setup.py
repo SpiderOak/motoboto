@@ -4,7 +4,7 @@ setup.py
 
 setup file for motoboto
 """
-from distutils.core import setup
+from setuptools import setup, find_packages
 
 _name = "motoboto"
 _description = "A plugin replacement for the s3 part of boto"
@@ -12,7 +12,6 @@ _version = "0.0.0"
 _author = "Doug Fort"
 _author_email = "dougfort@spideroak.com"
 _url = "https://spideroak.com"
-_packages = ["motoboto", "motoboto.s3", ]
 _classifiers = [
     "Development Status :: 1 - Planning",
     "Intended Audience :: Developers",
@@ -22,6 +21,11 @@ _classifiers = [
     "Topic :: Software Development :: Libraries",
 
 ]
+_entry_points = {
+    "console_scripts" : [
+        "nio_cmd = motoboto.nio_cmd.nio_cmd_main:main",
+    ]
+}
 _requires = ["lumberyard (>=0.1)", ]
 with open("README.txt") as input_file:
     _long_description = input_file.read()
@@ -33,8 +37,9 @@ setup(
     author=_author,
     author_email=_author_email,
     url=_url,
-    packages=_packages,
+    packages=find_packages(),
     version=_version,
     classifiers=_classifiers,
+    entry_points=_entry_points,
     requires=_requires
 )

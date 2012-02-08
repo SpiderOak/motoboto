@@ -1,3 +1,5 @@
 *.pyc
 *.log
 docs/_build/*
+dist/*
+motoboto.egg-info/*
