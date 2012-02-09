@@ -18,13 +18,19 @@ from motoboto.nio_cmd.argument_parser import parse_arguments, usage, \
         cmd_copy_file_to_nimbusio, \
         cmd_copy_stdin_to_nimbusio, \
         cmd_copy_nimbusio_to_file, \
-        cmd_copy_nimbusio_to_nimbusio
+        cmd_copy_nimbusio_to_nimbusio, \
+        cmd_copy_s3_to_nimbusio, \
+        cmd_copy_nimbusio_to_s3, \
+        cmd_move_s3_to_nimbusio
 from motoboto.nio_cmd.bucket_lister import list_all_buckets, list_bucket
 from motoboto.nio_cmd.key_commands import remove_key, \
         copy_file_to_nimbusio, \
         copy_stdin_to_nimbusio, \
         copy_nimbusio_to_file, \
-        copy_nimbusio_to_nimbusio
+        copy_nimbusio_to_nimbusio, \
+        copy_s3_to_nimbusio, \
+        copy_nimbusio_to_s3, \
+        move_s3_to_nimbusio
 
 _log_format = '%(asctime)s %(name)-12s: %(levelname)-8s %(message)s'
 
@@ -50,6 +56,9 @@ _dispatch_table = {
     cmd_copy_stdin_to_nimbusio      : copy_stdin_to_nimbusio,
     cmd_copy_nimbusio_to_file       : copy_nimbusio_to_file,
     cmd_copy_nimbusio_to_nimbusio   : copy_nimbusio_to_nimbusio,
+    cmd_copy_s3_to_nimbusio         : copy_s3_to_nimbusio,
+    cmd_copy_nimbusio_to_s3         : copy_nimbusio_to_s3,
+    cmd_move_s3_to_nimbusio         : move_s3_to_nimbusio,
 }
 
 def main():

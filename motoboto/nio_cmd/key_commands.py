@@ -2,9 +2,9 @@
 """
 key_commands.py
 """
-
-from cStringIO import StringIO
 import sys
+
+import boto
 
 def remove_key(motoboto_connection, bucket_name, key_name):
     """
@@ -49,7 +49,53 @@ def copy_nimbusio_to_nimbusio(
     source_bucket = motoboto_connection.get_bucket(source_bucket_name)
     source_key = source_bucket.get_key(source_key_name)
     dest_bucket = motoboto_connection.get_bucket(dest_bucket_name)
-    dest_key = source_bucket.get_key(dest_key_name)
+    dest_key = dest_bucket.get_key(dest_key_name)
     data = source_key.get_contents_as_string()
     dest_key.set_contents_from_string(data)
+
+def copy_s3_to_nimbusio(
+    motoboto_connection, 
+    source_bucket_name, 
+    source_key_name, 
+    dest_bucket_name,
+    dest_key_name
+):
+    s3_connection = boto.connect_s3()
+    source_bucket = s3_connection.get_bucket(source_bucket_name)
+    source_key = boto.s3.key.Key(source_bucket, source_key_name)
+    dest_bucket = motoboto_connection.get_bucket(dest_bucket_name)
+    dest_key = dest_bucket.get_key(dest_key_name)
+    data = source_key.get_contents_as_string()
+    dest_key.set_contents_from_string(data)
+
+def copy_nimbusio_to_s3(
+    motoboto_connection, 
+    source_bucket_name, 
+    source_key_name, 
+    dest_bucket_name,
+    dest_key_name
+):
+    s3_connection = boto.connect_s3()
+    source_bucket = motoboto_connection.get_bucket(source_bucket_name)
+    source_key = source_bucket.get_key(source_key_name)
+    dest_bucket = s3_connection.get_bucket(dest_bucket_name)
+    dest_key = boto.s3.key.Key(dest_bucket, dest_key_name)
+    data = source_key.get_contents_as_string()
+    dest_key.set_contents_from_string(data)
+
+def move_s3_to_nimbusio(
+    motoboto_connection, 
+    source_bucket_name, 
+    source_key_name, 
+    dest_bucket_name,
+    dest_key_name
+):
+    s3_connection = boto.connect_s3()
+    source_bucket = s3_connection.get_bucket(source_bucket_name)
+    source_key = boto.s3.key.Key(source_bucket, source_key_name)
+    dest_bucket = motoboto_connection.get_bucket(dest_bucket_name)
+    dest_key = dest_bucket.get_key(dest_key_name)
+    data = source_key.get_contents_as_string()
+    dest_key.set_contents_from_string(data)
+    source_key.delete()
 
