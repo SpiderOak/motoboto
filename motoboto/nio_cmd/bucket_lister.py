@@ -4,6 +4,11 @@ collection_lister.py
 
 list the keys in a collection
 """
+def create_bucket(motoboto_connection, bucket_name):
+    """
+    create a new bucket
+    """
+    motoboto_connection.create_bucket(bucket_name)
 
 def list_all_buckets(motoboto_connection):
     """

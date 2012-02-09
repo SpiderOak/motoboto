@@ -6,7 +6,8 @@ parse commandline arguments
 """
 import sys
 
-cmd_list_all_buckets = "list-all_buckets"
+cmd_create_bucket = "create-bucket"
+cmd_list_all_buckets = "list-all-buckets"
 cmd_list_bucket = "list-bucket"
 cmd_remove_key = "remove-key"
 cmd_copy_file_to_nimbusio = "copy-file-to-nimbusio"
@@ -18,6 +19,12 @@ cmd_copy_nimbusio_to_s3 = "copy-nimbusio-to-s3"
 cmd_move_s3_to_nimbusio = "move-s3-to-nimbusio"
 
 usage = """
+# create a bucket
+nio_cmd mkdir bucket_name
+
+# list all buckets
+nio_cmd ls
+
 # list keys in bucket 
 nio_cmd ls bucket_name 
 
@@ -71,6 +78,12 @@ def _parse_s3_file_type(text):
     """
     assert text.startswith(_s3_file_type)
     return _parse_bucket_path(text[len(_s3_file_type):])
+
+def _parse_mkdir(args):
+    if len(args) != 1:
+        raise ValueError("must makdir with a single bucket name")
+
+    return (cmd_create_bucket, args, )
 
 def _parse_ls(args):
     if len(args) == 0:
@@ -146,10 +159,11 @@ def _parse_mv(args):
     raise ValueError("Unparsable mv arguments {0}".format(args)) 
 
 _parse_dispatch_table = {
-    "ls" : _parse_ls,
-    "rm" : _parse_rm,
-    "cp" : _parse_cp,
-    "mv" : _parse_mv,
+    "mkdir" : _parse_mkdir,
+    "ls"    : _parse_ls,
+    "rm"    : _parse_rm,
+    "cp"    : _parse_cp,
+    "mv"    : _parse_mv,
 }
 
 def parse_arguments():

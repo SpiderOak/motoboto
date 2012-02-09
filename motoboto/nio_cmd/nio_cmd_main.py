@@ -12,6 +12,7 @@ import sys
 import motoboto
 
 from motoboto.nio_cmd.argument_parser import parse_arguments, usage, \
+        cmd_create_bucket, \
         cmd_list_all_buckets, \
         cmd_list_bucket, \
         cmd_remove_key, \
@@ -22,7 +23,9 @@ from motoboto.nio_cmd.argument_parser import parse_arguments, usage, \
         cmd_copy_s3_to_nimbusio, \
         cmd_copy_nimbusio_to_s3, \
         cmd_move_s3_to_nimbusio
-from motoboto.nio_cmd.bucket_lister import list_all_buckets, list_bucket
+from motoboto.nio_cmd.bucket_lister import create_bucket, \
+        list_all_buckets, \
+        list_bucket
 from motoboto.nio_cmd.key_commands import remove_key, \
         copy_file_to_nimbusio, \
         copy_stdin_to_nimbusio, \
@@ -49,6 +52,7 @@ def _initialize_logging():
     logging.root.setLevel(log_level)
 
 _dispatch_table = {
+    cmd_create_bucket               : create_bucket,
     cmd_list_all_buckets            : list_all_buckets,
     cmd_list_bucket                 : list_bucket,
     cmd_remove_key                  : remove_key,
