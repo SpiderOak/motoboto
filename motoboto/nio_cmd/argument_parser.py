@@ -12,6 +12,7 @@ cmd_remove_key = "remove-key"
 cmd_copy_file_to_nimbusio = "copy-file-to-nimbusio"
 cmd_copy_stdin_to_nimbusio = "copy-stdin-to-nimbusio"
 cmd_copy_nimbusio_to_file = "copy-nimbusio-to-file"
+cmd_copy_nimbusio_to_nimbusio = "copy-nimbusio-to-nimbusio"
 
 usage = """
 # list keys in bucket 
@@ -91,6 +92,13 @@ def _parse_cp(args):
 
     source, dest = args
 
+    if source.startswith(_nimbusio_file_type) and \
+       dest.startswith(_nimbusio_file_type):
+        source_bucket, source_key = _parse_nimbusio_file_type(source)
+        dest_bucket, dest_key = _parse_nimbusio_file_type(dest)
+        return (cmd_copy_nimbusio_to_nimbusio, 
+                [source_bucket, source_key, dest_bucket, dest_key])
+
     if source == _stdin_file_type and dest.startswith(_nimbusio_file_type):
         dest_bucket, dest_key = _parse_nimbusio_file_type(dest)
         return (cmd_copy_stdin_to_nimbusio, [dest_bucket, dest_key, ])
@@ -98,10 +106,6 @@ def _parse_cp(args):
     if dest.startswith(_nimbusio_file_type):
         dest_bucket, dest_key = _parse_nimbusio_file_type(dest)
         return (cmd_copy_file_to_nimbusio, [source, dest_bucket, dest_key])
-
-    if source.startswith(_nimbusio_file_type) and \
-       dest.startswith(_nimbusio_file_type):
-        pass
 
     if source.startswith(_nimbusio_file_type):
         source_bucket, source_key = _parse_nimbusio_file_type(source)

@@ -39,3 +39,17 @@ def copy_nimbusio_to_file(
     with open(dest_path, "wb") as dest_file:
         source_key.get_contents_to_file(dest_file)
 
+def copy_nimbusio_to_nimbusio(
+    motoboto_connection, 
+    source_bucket_name, 
+    source_key_name, 
+    dest_bucket_name,
+    dest_key_name
+):
+    source_bucket = motoboto_connection.get_bucket(source_bucket_name)
+    source_key = source_bucket.get_key(source_key_name)
+    dest_bucket = motoboto_connection.get_bucket(dest_bucket_name)
+    dest_key = source_bucket.get_key(dest_key_name)
+    data = source_key.get_contents_as_string()
+    dest_key.set_contents_from_string(data)
+
