@@ -3,7 +3,10 @@
 multipart.py
 
 """
+import logging
 import uuid
+
+from lumberyard.http_util import compute_uri
 
 from motoboto.s3.util import parse_timestamp_repr
 
@@ -18,7 +21,8 @@ class MultiPartUpload(object):
     Represents a MultiPart Upload operation.
     """
 
-    def __init__(self, bucket=None, **kwargs ):
+    def __init__(self, bucket=None, **kwargs):
+        self._log = logging.getLogger("MultiPartUpload")
         self._bucket = bucket
         self._conjoined_identifier = kwargs["conjoined_identifier"]
         self.key_name = kwargs["key"]
@@ -61,16 +65,47 @@ class MultiPartUpload(object):
         Cancels a MultiPart Upload operation. The storage consumed by any 
         previously uploaded parts will be freed.
         """
+        kwargs = {
+            "action"                : "abort",
+            "conjoined_identifier"  : self._conjoined_identifier,
+        }
+
+        method = "POST"
+        uri = compute_uri("conjoined", self.key_name, **kwargs)
+
+        http_connection = self._bucket.create_http_connection()
+
+        self._log.info("posting %s" % (uri, ))
+        response = http_connection.request(method, uri)
         
+        response.read()
+
+        http_connection.close()
+
     def complete_upload(self):
         """
         Complete the MultiPart Upload operation. 
         
         This method should be called when all parts of the file have been 
         successfully uploaded.
-
-        Returns:    An object representing the completed upload.
         """
+        kwargs = {
+            "action"                : "finish",
+            "conjoined_identifier"  : self._conjoined_identifier,
+        }
+
+        method = "POST"
+        uri = compute_uri("conjoined", self.key_name, **kwargs)
+
+        http_connection = self._bucket.create_http_connection()
+
+        self._log.info("posting %s" % (uri, ))
+        response = http_connection.request(method, uri)
+        
+        response.read()
+
+        http_connection.close()
+
 
     def get_all_parts(self, max_parts=None, part_number_marker=None):
         """
