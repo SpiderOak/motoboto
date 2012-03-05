@@ -54,6 +54,10 @@ class Key(object):
     def last_modified(self):
         return self._last_modified
 
+    @property
+    def etag(self):
+        return self._version_id
+
     def __str__(self):
         return self.name
 
@@ -341,10 +345,10 @@ class Key(object):
             raise ValueError("No bucket")
         if self._name is None:
             raise ValueError("No name")
-
-        kwargs = {
-            "version_identifier" : version_id,
-        }
+    
+        kwargs = dict()
+        if version_id is not None:
+            kwargs["version_identifier"] = version_id\
 
         method = "DELETE"
         uri = compute_uri("data", self._name, **kwargs)
