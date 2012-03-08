@@ -283,8 +283,12 @@ class Key(object):
 
         return "".join(body_list)
 
-    def get_contents_to_file(
-        self, file_object, cb=None, cb_count=10, version_id=None
+    def get_contents_to_file(self, 
+                             file_object, 
+                             cb=None, 
+                             cb_count=10, 
+                             version_id=None,
+                             res_download_handler=None
     ):
         """
         file_object
@@ -300,6 +304,9 @@ class Key(object):
             identifier of a specific version to retrieve
 
             None means retrieve the most recent version
+
+        res_download_handler
+            an object that provides information for a resumable download
 
         retrieve the contents from nimbus.io to a file
         """
