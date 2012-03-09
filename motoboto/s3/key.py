@@ -240,7 +240,12 @@ class Key(object):
         response_dict = json.loads(response_str)
         self._version_id = response_dict["version_identifier"]
 
-    def get_contents_as_string(self, cb=None, cb_count=10, version_id=None):
+    def get_contents_as_string(self, 
+                               cb=None, 
+                               cb_count=10, 
+                               version_id=None,
+                               slice_offset=None,
+                               slice_size=None):
         """
         cb
             callback function for reporting progress
@@ -253,6 +258,16 @@ class Key(object):
 
             None means retrieve the most recent version
 
+        slice_offset
+            byte offset for start of retrieve
+
+            None means start at byte 0
+
+        slice_size
+            number of bytes to retrieve
+
+            None means retrieve to end of file
+
         retrieve the contents from nimbus.io as a string
         """
         if self._bucket is None:
@@ -263,6 +278,10 @@ class Key(object):
         kwargs = {
             "version_identifier"    : version_id,
         }
+        if slice_offset is not None:
+            kwargs["slice_offset"] = slice_offset
+        if slice_offset is not None:
+            kwargs["slice_size"] = slice_size
 
         method = "GET"
         uri = compute_uri("data", self._name, **kwargs)
@@ -288,8 +307,9 @@ class Key(object):
                              cb=None, 
                              cb_count=10, 
                              version_id=None,
-                             res_download_handler=None
-    ):
+                             slice_offset=None,
+                             slice_size=None,
+                             res_download_handler=None):
         """
         file_object
             Python file-like object, must support write()
@@ -305,6 +325,16 @@ class Key(object):
 
             None means retrieve the most recent version
 
+        slice_offset
+            byte offset for start of retrieve
+
+            None means start at byte 0
+
+        slice_size
+            number of bytes to retrieve
+
+            None means retrieve to end of file
+
         res_download_handler
             an object that provides information for a resumable download
 
@@ -318,6 +348,10 @@ class Key(object):
         kwargs = {
             "version_identifier" : version_id,
         }
+        if slice_offset is not None:
+            kwargs["slice_offset"] = slice_offset
+        if slice_offset is not None:
+            kwargs["slice_size"] = slice_size
 
         method = "GET"
         uri = compute_uri("data", self._name, **kwargs)

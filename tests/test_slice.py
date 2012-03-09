@@ -172,24 +172,24 @@ class TestSlice(unittest.TestCase):
         test_data, key = self._set_up_single_archive()
         test_params = [(0, 1024), (1024, 2048), (len(test_data)-2048, 2048)]
 
-        for offset, slice_size in test_params:
+        for slice_offset, slice_size in test_params:
             # read back the data
             retrieve_file_path = os.path.join(
                 test_dir_path, "test_key_with_files-orignal"
             )
             with open(retrieve_file_path, "w") as retrieve_file:
                 key.get_contents_to_file(retrieve_file, 
-                                         offset=offset, 
-                                         size=slice_size) 
+                                         slice_offset=slice_offset, 
+                                         slice_size=slice_size) 
 
             # read back the retrieved data
             with open(retrieve_file_path, "r") as retrieve_file:
                 retrieved_data = retrieve_file.read()
 
             self.assertEqual(len(retrieved_data), 
-                             len(test_data[offset:offset+slice_size]))
+                             len(test_data[slice_offset:slice_offset+slice_size]))
             self.assertTrue(retrieved_data == \
-                            test_data[offset:offset+slice_size])
+                            test_data[slice_offset:slice_offset+slice_size])
 
         self._tear_down_archive(key)
 
@@ -239,24 +239,24 @@ class TestSlice(unittest.TestCase):
         test_params.append(seams[1]-1024, 2048)
         test_params.append(seams[2], 2*_multipart_part_size+1024)
 
-        for offset, slice_size in test_params:
+        for slice_offset, slice_size in test_params:
             # read back the data
             retrieve_file_path = os.path.join(
                 test_dir_path, "test_key_with_files-orignal"
             )
             with open(retrieve_file_path, "w") as retrieve_file:
                 key.get_contents_to_file(retrieve_file, 
-                                         offset=offset, 
-                                         size=slice_size) 
+                                         slice_offset=slice_offset, 
+                                         slice_size=slice_size) 
 
             # read back the retrieved data
             with open(retrieve_file_path, "r") as retrieve_file:
                 retrieved_data = retrieve_file.read()
 
             self.assertEqual(len(retrieved_data), 
-                             len(test_data[offset:offset+slice_size]))
+                             len(test_data[slice_offset:slice_offset+slice_size]))
             self.assertTrue(retrieved_data == \
-                            test_data[offset:offset+slice_size])
+                            test_data[slice_offset:slice_offset+slice_size])
 
         self._tear_down_archive(key)
 
