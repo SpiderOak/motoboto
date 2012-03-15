@@ -236,8 +236,8 @@ class TestSlice(unittest.TestCase):
             test_params.append((seam+_multipart_part_size-2048, 2048))
 
         # some overlapping slices
-        test_params.append(seams[1]-1024, 2048)
-        test_params.append(seams[2], 2*_multipart_part_size+1024)
+        test_params.append((seams[1]-1024, 2048))
+        test_params.append((seams[2], 2*_multipart_part_size+1024))
 
         for slice_offset, slice_size in test_params:
             # read back the data
