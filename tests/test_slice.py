@@ -187,9 +187,11 @@ class TestSlice(unittest.TestCase):
                 retrieved_data = retrieve_file.read()
 
             self.assertEqual(len(retrieved_data), 
-                             len(test_data[slice_offset:slice_offset+slice_size]))
+                             len(test_data[slice_offset:slice_offset+slice_size]),
+                             (slice_offset, slice_size, ))
             self.assertTrue(retrieved_data == \
-                            test_data[slice_offset:slice_offset+slice_size])
+                            test_data[slice_offset:slice_offset+slice_size],
+                            (slice_offset, slice_size, ))
 
         self._tear_down_archive(key)
 
@@ -254,9 +256,11 @@ class TestSlice(unittest.TestCase):
                 retrieved_data = retrieve_file.read()
 
             self.assertEqual(len(retrieved_data), 
-                             len(test_data[slice_offset:slice_offset+slice_size]))
+                             len(test_data[slice_offset:slice_offset+slice_size]),
+                             (slice_offset, slice_size, ))
             self.assertTrue(retrieved_data == \
-                            test_data[slice_offset:slice_offset+slice_size])
+                            test_data[slice_offset:slice_offset+slice_size],
+                            (slice_offset, slice_size, ))
 
         self._tear_down_archive(key)
 
