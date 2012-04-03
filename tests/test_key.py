@@ -113,7 +113,8 @@ class TestKey(unittest.TestCase):
 
         # read back the data
         returned_string = read_key.get_contents_as_string()      
-        self.assertEqual(returned_string, test_string)
+        self.assertEqual(returned_string, test_string, (
+            len(returned_string), len(test_string)))
 
         # delete the key
         read_key.delete()

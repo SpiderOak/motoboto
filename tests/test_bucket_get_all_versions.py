@@ -86,7 +86,7 @@ class TestBucketGetAllVersions(unittest.TestCase):
         if os.path.exists(test_dir_path):
             shutil.rmtree(test_dir_path)
 
-    def xxxtest_get_all_versions_empty_bucket(self):
+    def test_get_all_versions_empty_bucket(self):
         """
         test get_all_versions() on an empty buckey
         """
@@ -136,7 +136,7 @@ class TestBucketGetAllVersions(unittest.TestCase):
 
         _clear_bucket(self._s3_connection, bucket)
         
-    def xxxtest_get_all_versions_tree(self):
+    def test_get_all_versions_tree(self):
         """
         test storing and retrieving a directory tree
         """
@@ -179,7 +179,7 @@ class TestBucketGetAllVersions(unittest.TestCase):
 
         _clear_bucket(self._s3_connection, bucket)
         
-    def xxxtest_delimiter(self):
+    def test_delimiter(self):
         """
         test using a delimiter
         """
@@ -220,7 +220,7 @@ class TestBucketGetAllVersions(unittest.TestCase):
 
         _clear_bucket(self._s3_connection, bucket)
         
-    def xxxtest_marker(self):
+    def test_marker(self):
         """
         test using a marker
         """

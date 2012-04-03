@@ -104,7 +104,6 @@ class TestMultipart(unittest.TestCase):
 
         # complete the upload
         completed_upload = multipart_upload.complete_upload()
-        print >> sys.stderr, dir(completed_upload)
 
         key = Key(bucket, key_name)
         with open(retrieve_path, "w") as output_file:
