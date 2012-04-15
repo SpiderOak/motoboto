@@ -4,6 +4,7 @@ s3_emulator.py
 
 Emulate the functions of the object returned by boto.connect_s3
 """
+import httplib
 import json
 import logging
 
@@ -113,7 +114,10 @@ class S3Emulator(object):
 
         self._log.info("requesting %s" % (uri, ))
         try:
-            response = http_connection.request(method, uri, body=None)
+            response = http_connection.request(method, 
+                                               uri, 
+                                               body=None, 
+                                               expected_status=httplib.CREATED)
         except LumberyardHTTPError, instance:
             self._log.error(str(instance))
             http_connection.close()

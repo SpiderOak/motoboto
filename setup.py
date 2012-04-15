@@ -10,7 +10,7 @@ from setuptools import setup, find_packages
 
 _name = "motoboto"
 _description = "A plugin replacement for the s3 part of boto"
-_version = "0.0.0"
+_version = "0.1.0"
 _author = "Doug Fort"
 _author_email = "dougfort@spideroak.com"
 _url = "https://spideroak.com"
@@ -31,7 +31,8 @@ _entry_points = {
 
 pre_python27 = (sys.version_info[0] == 2 and sys.version_info[1] < 7)
 
-_requires = (["lumberyard (>=0.1)", ], ["lumberyard (>=0.1)", "unittest2"])[pre_python27]
+_requires = (["lumberyard (>=0.2)", ], 
+             ["lumberyard (>=0.1)", "unittest2"])[pre_python27]
 with open("README.txt") as input_file:
     _long_description = input_file.read()
 
