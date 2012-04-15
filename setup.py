@@ -4,6 +4,8 @@ setup.py
 
 setup file for motoboto
 """
+
+import sys
 from setuptools import setup, find_packages
 
 _name = "motoboto"
@@ -26,7 +28,10 @@ _entry_points = {
         "nio_cmd = motoboto.nio_cmd.nio_cmd_main:main",
     ]
 }
-_requires = ["lumberyard (>=0.1)", ]
+
+pre_python27 = (sys.version_info[0] == 2 and sys.version_info[1] < 7)
+
+_requires = (["lumberyard (>=0.1)", ], ["lumberyard (>=0.1)", "unittest2"])[pre_python27]
 with open("README.txt") as input_file:
     _long_description = input_file.read()
 
