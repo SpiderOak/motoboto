@@ -156,11 +156,11 @@ class S3Emulator(object):
         collection_list = json.loads(data)
 
         bucket_list = list()
-        for collection_name, versioning, _timestamp in collection_list:
+        for collection_dict in collection_list:
             bucket = Bucket(
                 self._identity, 
-                collection_name.decode("utf-8"), 
-                versioning=versioning
+                collection_dict["name"].decode("utf-8"), 
+                versioning=collection_dict["versioning"]
             )
             bucket_list.append(bucket)
         return bucket_list
