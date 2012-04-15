@@ -19,7 +19,13 @@ except ImportError:
 
 _motoboto = os.environ.get("USE_BOTO", "0") != "1"
 
-if not _motoboto:
+if _motoboto:
+    import motoboto as boto
+    from motoboto.s3.key import Key
+    from motoboto.s3.resumable_download_handler import ResumableDownloadHandler
+    from lumberyard.http_connection import LumberyardHTTPError \
+            as http_exception
+else:
     import boto
     from boto.s3.key import Key
     from boto.s3.resumable_download_handler import ResumableDownloadHandler
@@ -61,7 +67,6 @@ class TestResumableDownloadHandler(unittest.TestCase):
         if os.path.exists(test_dir_path):
             shutil.rmtree(test_dir_path)
 
-    @unittest.skipIf(_motoboto, "boto only")
     def test_uninterrupted_resumable(self):
         """
         test get_contents_to_file without any interruption. 
@@ -129,7 +134,6 @@ class TestResumableDownloadHandler(unittest.TestCase):
         # delete the bucket
         self._s3_connection.delete_bucket(bucket_name)
         
-    @unittest.skipIf(_motoboto, "boto only")
     def test_interrupted_resumable(self):
         """
         test get_contents_to_file with a simulated interruption. 

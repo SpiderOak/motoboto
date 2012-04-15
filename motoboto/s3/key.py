@@ -4,6 +4,7 @@ simulate a boto Key object
 """
 import json
 import logging
+import os
 
 from lumberyard.http_connection import LumberyardHTTPError
 from lumberyard.http_util import compute_uri, meta_prefix
@@ -309,10 +310,12 @@ class Key(object):
                              version_id=None,
                              slice_offset=None,
                              slice_size=None,
+                             resumable=False,
                              res_download_handler=None):
         """
         file_object
             Python file-like object, must support write()
+            must support seek() and tell() for resumable=True
 
         cb
             callback function for reporting progress
@@ -335,8 +338,14 @@ class Key(object):
 
             None means retrieve to end of file
 
+        resumable 
+            True means append to an existing file if there is one
+
         res_download_handler
-            an object that provides information for a resumable download
+            included for boto compatibility. We have a 
+            ResumeableDownloadHandler object, but actually if you put
+            anything besides None in this argument, it has the same effect
+            as setting resumable to True.
 
         retrieve the contents from nimbus.io to a file
         """
@@ -352,6 +361,17 @@ class Key(object):
             kwargs["slice_offset"] = slice_offset
         if slice_offset is not None:
             kwargs["slice_size"] = slice_size
+
+        if resumable == True or res_download_handler is not None:
+            file_object.seek(0, os.SEEK_END)
+            current_file_size = file_object.tell()
+            if "slice_size" in kwargs:
+                assert current_file_size < kwargs["slice_size"]
+                kwargs["slice_size"] -= current_file_size
+            if "slice_offset" in kwargs:
+                kwargs["slice_offset"] += current_file_size
+            else:
+                kwargs["slice_offset"] = current_file_size
 
         method = "GET"
         uri = compute_uri("data", self._name, **kwargs)
