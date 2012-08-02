@@ -60,14 +60,22 @@ class Bucket(object):
         """
         set the bucket's versioning property to True or False
         """
-        kwargs = {
-            "versioning" : repr(versioning) 
-        }
-
+        http_connection = HTTPConnection(
+            compute_default_hostname(),
+            self._identity.user_name,
+            self._identity.auth_key,
+            self._identity.auth_key_id
+        )
         method = "PUT"
-        uri = compute_uri("/", **kwargs)
-
-        http_connection = self.create_http_connection()
+        uri = compute_uri(
+            "/".join([
+                "customers", 
+                self._identity.user_name, 
+                "collections",
+                self._collection_name
+            ]),
+            versioning=repr(versioning) 
+        )
 
         self._log.info("putting %s" % (uri, ))
         response = http_connection.request(method, uri)
