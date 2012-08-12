@@ -16,6 +16,15 @@ from motoboto.s3.retrieve_callback_wrapper import NullCallbackWrapper, \
 
 _read_buffer_size = 64 * 1024
 
+def _convert_slice_to_range_header(headers, slice_offset, slice_size):
+    if slice_size is not None:
+        if slice_offset is None:
+            slice_offset = 0
+        headers["Range"] = "bytes=%s-%s" % (slice_offset, 
+                                            slice_offset + slice_size + 1, )
+    elif slice_offset is not None:
+        headers["Range"] = "bytes=%s-" % (slice_offset, )
+
 class Key(object):
     """
     wrap a nimbus.io key to simulate a boto Key object
@@ -279,10 +288,8 @@ class Key(object):
         kwargs = {
             "version_identifier"    : version_id,
         }
-        if slice_offset is not None:
-            kwargs["slice_offset"] = slice_offset
-        if slice_offset is not None:
-            kwargs["slice_size"] = slice_size
+        headers = {}
+        _convert_slice_to_range_header(headers, slice_offset, slice_size)
 
         method = "GET"
         uri = compute_uri("data", self._name, **kwargs)
@@ -290,7 +297,10 @@ class Key(object):
         http_connection = self._bucket.create_http_connection()
 
         self._log.info("requesting GET %s" % (uri, ))
-        response = http_connection.request(method, uri, body=None)
+        response = http_connection.request(method, 
+                                           uri, 
+                                           body=None, 
+                                           headers=headers)
         
         body_list = list()
         while True:
@@ -357,21 +367,20 @@ class Key(object):
         kwargs = {
             "version_identifier" : version_id,
         }
-        if slice_offset is not None:
-            kwargs["slice_offset"] = slice_offset
-        if slice_offset is not None:
-            kwargs["slice_size"] = slice_size
 
         if resumable == True or res_download_handler is not None:
             file_object.seek(0, os.SEEK_END)
             current_file_size = file_object.tell()
-            if "slice_size" in kwargs:
-                assert current_file_size < kwargs["slice_size"]
-                kwargs["slice_size"] -= current_file_size
-            if "slice_offset" in kwargs:
-                kwargs["slice_offset"] += current_file_size
+            if slice_size is not None:
+                assert current_file_size < slice_size
+                slice_size -= current_file_size
+            if slice_offset is not None:
+                slice_offset += current_file_size
             else:
-                kwargs["slice_offset"] = current_file_size
+                slice_offset = current_file_size
+
+        headers = {}
+        _convert_slice_to_range_header(headers, slice_offset, slice_size)
 
         method = "GET"
         uri = compute_uri("data", self._name, **kwargs)
@@ -379,7 +388,10 @@ class Key(object):
         http_connection = self._bucket.create_http_connection()
 
         self._log.info("requesting GET %s" % (uri, ))
-        response = http_connection.request(method, uri, body=None)
+        response = http_connection.request(method, 
+                                           uri, 
+                                           body=None, 
+                                           headers=headers)
 
         if cb is None:
             reporter = NullCallbackWrapper()
