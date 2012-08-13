@@ -21,7 +21,7 @@ def _convert_slice_to_range_header(headers, slice_offset, slice_size):
         if slice_offset is None:
             slice_offset = 0
         headers["Range"] = "bytes=%s-%s" % (slice_offset, 
-                                            slice_offset + slice_size + 1, )
+                                            slice_offset + slice_size - 1, )
     elif slice_offset is not None:
         headers["Range"] = "bytes=%s-" % (slice_offset, )
 
