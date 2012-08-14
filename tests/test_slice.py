@@ -188,7 +188,7 @@ class TestSlice(unittest.TestCase):
 
             self.assertEqual(len(retrieved_data), 
                              len(test_data[slice_offset:slice_offset+slice_size]),
-                             (slice_offset, slice_size, ))
+                             (len(retrieved_data), slice_offset, slice_size, ))
             self.assertTrue(retrieved_data == \
                             test_data[slice_offset:slice_offset+slice_size],
                             (slice_offset, slice_size, ))
@@ -257,7 +257,7 @@ class TestSlice(unittest.TestCase):
 
             self.assertEqual(len(retrieved_data), 
                              len(test_data[slice_offset:slice_offset+slice_size]),
-                             (slice_offset, slice_size, ))
+                             (len(retrieved_data), slice_offset, slice_size, ))
             self.assertTrue(retrieved_data == \
                             test_data[slice_offset:slice_offset+slice_size],
                             (slice_offset, slice_size, ))

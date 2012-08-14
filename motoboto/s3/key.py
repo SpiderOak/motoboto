@@ -2,6 +2,7 @@
 """
 simulate a boto Key object
 """
+import httplib
 import json
 import logging
 import os
@@ -290,6 +291,8 @@ class Key(object):
         }
         headers = {}
         _convert_slice_to_range_header(headers, slice_offset, slice_size)
+        expected_status = \
+            (httplib.PARTIAL_CONTENT if "Range" in headers else httplib.OK)
 
         method = "GET"
         uri = compute_uri("data", self._name, **kwargs)
@@ -300,7 +303,8 @@ class Key(object):
         response = http_connection.request(method, 
                                            uri, 
                                            body=None, 
-                                           headers=headers)
+                                           headers=headers,
+                                           expected_status=expected_status)
         
         body_list = list()
         while True:
@@ -381,6 +385,8 @@ class Key(object):
 
         headers = {}
         _convert_slice_to_range_header(headers, slice_offset, slice_size)
+        expected_status = \
+            (httplib.PARTIAL_CONTENT if "Range" in headers else httplib.OK)
 
         method = "GET"
         uri = compute_uri("data", self._name, **kwargs)
@@ -391,7 +397,8 @@ class Key(object):
         response = http_connection.request(method, 
                                            uri, 
                                            body=None, 
-                                           headers=headers)
+                                           headers=headers,
+                                           expected_status=expected_status)
 
         if cb is None:
             reporter = NullCallbackWrapper()
@@ -403,6 +410,7 @@ class Key(object):
         while True:
             data = response.read(_read_buffer_size)
             bytes_read = len(data)
+            self._log.debug("read {0} bytes".format(bytes_read))
             if bytes_read == 0:
                 break
             file_object.write(data)
