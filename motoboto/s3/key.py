@@ -160,8 +160,11 @@ class Key(object):
 
         kwargs = {
             "conjoined_identifier"  : multipart_id,
-            "conjoined_part"        : part_num,
         }
+
+        if part_num > 0:
+            kwargs["conjoined_part"] = part_num
+
         for meta_key, meta_value in self._metadata.items():
             kwargs["".join([meta_prefix, meta_key])] = meta_value
 
@@ -225,8 +228,11 @@ class Key(object):
 
         kwargs = {
             "conjoined_identifier"  : multipart_id,
-            "conjoined_part"        : part_num
         }
+
+        if part_num > 0:
+            kwargs["conjoined_part"] = part_num
+
         for meta_key, meta_value in self._metadata:
             kwargs["".join([meta_prefix, meta_key])] = meta_value
 
