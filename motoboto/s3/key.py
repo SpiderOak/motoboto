@@ -15,6 +15,13 @@ from motoboto.s3.archive_callback_wrapper import ArchiveCallbackWrapper
 from motoboto.s3.retrieve_callback_wrapper import NullCallbackWrapper, \
         RetrieveCallbackWrapper
 
+class KeyModifiedError(Exception):
+    pass
+class KeyModified(KeyModifiedError):
+    pass
+class KeyUnmodified(KeyModifiedError):
+    pass
+
 _read_buffer_size = 64 * 1024
 
 def _convert_slice_to_range_header(headers, slice_offset, slice_size):
@@ -84,9 +91,12 @@ class Key(object):
 
     size = property(_get_size, _set_size)
 
-    def exists(self):
+    def exists(self, modified_since=None, unmodified_since=None):
         """
-        return True if we can HEAD the key
+        return True if we can HEAD the key, and it fits one of the
+        optional date_modified restrctions.
+
+        Not that you cannot specify both modified_since and unmodified_since
         """  
         found = False
 
@@ -255,7 +265,9 @@ class Key(object):
                                cb_count=10, 
                                version_id=None,
                                slice_offset=None,
-                               slice_size=None):
+                               slice_size=None,
+                               modified_since=None, 
+                               unmodified_since=None):
         """
         cb
             callback function for reporting progress
@@ -277,6 +289,22 @@ class Key(object):
             number of bytes to retrieve
 
             None means retrieve to end of file
+
+        modified_since
+            only retrieve the file if it has been modified since the specified 
+            timestamp.
+
+            Otherwise: raise KeyUnmodified
+
+            Note: you cannot specify both modified_since and unmodified_since
+
+        unmodified_since
+            only retrieve the file if it has not been modified since the 
+            specified timestamp.
+
+            Otherwise: raise KeyModified
+
+            Note: you cannot specify both modified_since and unmodified_since
 
         retrieve the contents from nimbus.io as a string
         """
@@ -323,6 +351,8 @@ class Key(object):
                              version_id=None,
                              slice_offset=None,
                              slice_size=None,
+                             modified_since=None, 
+                             unmodified_since=None,
                              resumable=False,
                              res_download_handler=None):
         """
@@ -350,6 +380,22 @@ class Key(object):
             number of bytes to retrieve
 
             None means retrieve to end of file
+
+        modified_since
+            only retrieve the file if it has been modified since the specified 
+            timestamp.
+
+            Otherwise: raise KeyUnmodified
+
+            Note: you cannot specify both modified_since and unmodified_since
+
+        unmodified_since
+            only retrieve the file if it has not been modified since the 
+            specified timestamp.
+
+            Otherwise: raise KeyModified
+
+            Note: you cannot specify both modified_since and unmodified_since
 
         resumable 
             True means append to an existing file if there is one
