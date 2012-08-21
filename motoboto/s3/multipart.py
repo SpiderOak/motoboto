@@ -119,8 +119,8 @@ class MultiPartUpload(object):
             number of this part
 
         replace
-            True if existing contents are to be written over. (this **must**
-            be True for motoboto)
+            True if existing contents are to be written over.
+            (this argument is ignored by  motoboto)
 
         cb
             callback function for reporting progress

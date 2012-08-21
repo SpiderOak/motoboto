@@ -134,8 +134,8 @@ class Key(object):
             the string to archive
 
         replace
-            True if existing contents are to be written over. (this **must**
-            be True for motoboto)
+            True if existing contents are to be written over. 
+            (this argument is ignored by motoboto)
 
         cb
             callback function for reporting progress
@@ -161,7 +161,6 @@ class Key(object):
         kwargs = {
             "conjoined_identifier"  : multipart_id,
             "conjoined_part"        : part_num,
-            "replace"               : str(replace),
         }
         for meta_key, meta_value in self._metadata.items():
             kwargs["".join([meta_prefix, meta_key])] = meta_value
@@ -195,8 +194,8 @@ class Key(object):
             read().
 
         replace
-            True if existing contents are to be written over. (this **must**
-            be True for motoboto)
+            True if existing contents are to be written over.
+            (this argument is ignored by motoboto)
 
         cb
             callback function for reporting progress
@@ -216,12 +215,6 @@ class Key(object):
             raise ValueError("No bucket")
         if self._name is None:
             raise ValueError("No name")
-
-        # 2011-08-07 dougfort -- If they don't want to replace,
-        # stop them right here.
-        if not replace:
-            if self.exists():
-                raise KeyError("attempt to inot replace key %r" % (self._name))
 
         wrapper = None
         if cb is None:
