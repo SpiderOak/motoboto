@@ -15,7 +15,7 @@ from lumberyard.http_connection import HTTPConnection
 from motoboto.s3.bucketlistresultset import BucketListResultSet
 from motoboto.s3.key import Key
 from motoboto.s3.multipart import MultiPartUpload
-from motoboto.s3.util import parse_timestamp_repr
+from motoboto.s3.util import parse_http_timestamp
 
 class Prefix(object):
     """
@@ -141,9 +141,7 @@ class Bucket(object):
                     bucket=self, 
                     name=key_entry["key"], 
                     version_id=key_entry["version_identifier"],
-                    last_modified=parse_timestamp_repr(
-                        key_entry["timestamp_repr"]
-                    )
+                    last_modified=parse_http_timestamp(key_entry["timestamp"])
                 )
                 result_list.append(key)
         elif "prefixes" in data_dict:

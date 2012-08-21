@@ -8,7 +8,7 @@ import uuid
 
 from lumberyard.http_util import compute_uri
 
-from motoboto.s3.util import parse_timestamp_repr
+from motoboto.s3.util import parse_http_timestamp
 
 class CompleteMultiPartUpload(object):
     """
@@ -26,33 +26,29 @@ class MultiPartUpload(object):
         self._bucket = bucket
         self._conjoined_identifier = kwargs["conjoined_identifier"]
         self.key_name = kwargs["key"]
-        self.create_timestamp = parse_timestamp_repr(
-            kwargs["create_timestamp"]
-        )
+        self.create_timestamp = \
+            parse_http_timestamp(kwargs["create_timestamp"])
         if "abort_timestamp" in kwargs and \
            kwargs["abort_timestamp"] is not None and \
            len(kwargs["abort_timestamp"]) > 0:
-            self.abort_timestamp = parse_timestamp_repr(
-                kwargs["abort_timestamp"]
-            )
+            self.abort_timestamp = \
+                parse_http_timestamp(kwargs["abort_timestamp"])
         else:
             self.abort_timestamp = None
 
         if "complete_timestamp" in kwargs and \
            kwargs["complete_timestamp"] is not None and \
            len(kwargs["complete_timestamp"]) > 0:
-            self.complete_timestamp = parse_timestamp_repr(
-                kwargs["complete_timestamp"]
-            )
+            self.complete_timestamp = \
+                parse_http_timestamp(kwargs["complete_timestamp"])
         else:
             self.complete_timestamp = None
 
         if "delete_timestamp" in kwargs and \
            kwargs["delete_timestamp"] is not None and \
            len(kwargs["delete_timestamp"]) > 0:
-            self.delete_timestamp = parse_timestamp_repr(
-                kwargs["delete_timestamp"]
-            )
+            self.delete_timestamp = \
+                parse_http_timestamp(kwargs["delete_timestamp"])
         else:
             self.delete_timestamp = None
 
