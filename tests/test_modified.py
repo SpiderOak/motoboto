@@ -141,7 +141,7 @@ class TestModified(unittest.TestCase):
 
         self.assertRaises(KeyModified, 
                           key.get_contents_as_string,
-                          modified_since=before_time)
+                          unmodified_since=before_time)
 
         self._tear_down_archive(key)
 

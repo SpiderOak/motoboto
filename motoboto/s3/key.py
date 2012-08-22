@@ -2,6 +2,7 @@
 """
 simulate a boto Key object
 """
+from datetime import datetime
 import httplib
 import json
 import logging
@@ -11,6 +12,7 @@ from lumberyard.http_connection import LumberyardHTTPError
 from lumberyard.http_util import compute_uri, meta_prefix
 from lumberyard.read_reporter import ReadReporter
 
+from motoboto.s3.util import http_timestamp_str
 from motoboto.s3.archive_callback_wrapper import ArchiveCallbackWrapper
 from motoboto.s3.retrieve_callback_wrapper import NullCallbackWrapper, \
         RetrieveCallbackWrapper
@@ -104,17 +106,31 @@ class Key(object):
             raise ValueError("No bucket")
         if self._name is None:
             raise ValueError("No name")
+        if modified_since is not None and unmodified_since is not None:
+            raise ValueError(
+                "Can't specify both modified_since and unmodified_since")
 
         method = "HEAD"
         uri = compute_uri("data", self._name)
+        headers = {}
+        if modified_since is not None:
+            timestamp = datetime.utcfromtimestamp(modified_since)
+            headers["If-Modified-Since"] = http_timestamp_str(timestamp)
+        if unmodified_since is not None:
+            timestamp = datetime.utcfromtimestamp(unmodified_since)
+            headers["If-Unmodified-Since"] = http_timestamp_str(timestamp)
         
         http_connection = self._bucket.create_http_connection()
 
-        self._log.info("requesting HEAD %s" % (uri, ))
+        self._log.info("requesting HEAD {0} {1}".format(uri, headers))
         try:
-            response = http_connection.request(method, uri, body=None)
+            response = http_connection.request(method, 
+                                               uri, 
+                                               body=None, 
+                                               headers=headers)
         except LumberyardHTTPError, instance:
-            if instance.status == 404: # not found
+            # not modified, not found, precondition not met
+            if instance.status in [304, 404, 412]:
                 pass
             else:
                 self._log.error(str(instance))
@@ -312,6 +328,9 @@ class Key(object):
             raise ValueError("No bucket")
         if self._name is None:
             raise ValueError("No name")
+        if modified_since is not None and unmodified_since is not None:
+            raise ValueError(
+                "Can't specify both modified_since and unmodified_since")
 
         kwargs = {
             "version_identifier"    : version_id,
@@ -321,18 +340,34 @@ class Key(object):
         expected_status = \
             (httplib.PARTIAL_CONTENT if "Range" in headers else httplib.OK)
 
+        if modified_since is not None:
+            timestamp = datetime.utcfromtimestamp(modified_since)
+            headers["If-Modified-Since"] = http_timestamp_str(timestamp)
+        if unmodified_since is not None:
+            timestamp = datetime.utcfromtimestamp(unmodified_since)
+            headers["If-Unmodified-Since"] = http_timestamp_str(timestamp)
+
         method = "GET"
         uri = compute_uri("data", self._name, **kwargs)
 
         http_connection = self._bucket.create_http_connection()
 
-        self._log.info("requesting GET %s" % (uri, ))
-        response = http_connection.request(method, 
-                                           uri, 
-                                           body=None, 
-                                           headers=headers,
-                                           expected_status=expected_status)
-        
+        self._log.info("requesting GET {0} {1}".format(uri, headers))
+
+        try:
+            response = http_connection.request(method, 
+                                               uri, 
+                                               body=None, 
+                                               headers=headers,
+                                               expected_status=expected_status)
+        except LumberyardHTTPError, instance:
+            http_connection.close()
+            if instance.status == 304 and modified_since is not None:
+                raise KeyUnmodified()
+            if instance.status == 412 and unmodified_since is not None:
+                raise KeyModified()
+            raise
+            
         body_list = list()
         while True:
             data = response.read(_read_buffer_size)
@@ -412,6 +447,9 @@ class Key(object):
             raise ValueError("No bucket")
         if self._name is None:
             raise ValueError("No name")
+        if modified_since is not None and unmodified_since is not None:
+            raise ValueError(
+                "Can't specify both modified_since and unmodified_since")
 
         kwargs = {
             "version_identifier" : version_id,
@@ -433,17 +471,32 @@ class Key(object):
         expected_status = \
             (httplib.PARTIAL_CONTENT if "Range" in headers else httplib.OK)
 
+        if modified_since is not None:
+            timestamp = datetime.utcfromtimestamp(modified_since)
+            headers["If-Modified-Since"] = http_timestamp_str(timestamp)
+        if unmodified_since is not None:
+            timestamp = datetime.utcfromtimestamp(unmodified_since)
+            headers["If-Unmodified-Since"] = http_timestamp_str(timestamp)
+
         method = "GET"
         uri = compute_uri("data", self._name, **kwargs)
 
         http_connection = self._bucket.create_http_connection()
 
-        self._log.info("requesting GET %s" % (uri, ))
-        response = http_connection.request(method, 
-                                           uri, 
-                                           body=None, 
-                                           headers=headers,
-                                           expected_status=expected_status)
+        self._log.info("requesting GET {0} {1}".format(uri, headers))
+        try:
+            response = http_connection.request(method, 
+                                               uri, 
+                                               body=None, 
+                                               headers=headers,
+                                               expected_status=expected_status)
+        except LumberyardHTTPError, instance:
+            http_connection.close()
+            if instance.status == 304 and modified_since is not None:
+                raise KeyUnmodified()
+            if instance.status == 412 and unmodified_since is not None:
+                raise KeyModified()
+            raise
 
         if cb is None:
             reporter = NullCallbackWrapper()
