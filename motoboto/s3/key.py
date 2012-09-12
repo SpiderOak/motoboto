@@ -527,7 +527,7 @@ class Key(object):
     
         kwargs = dict()
         if version_id is not None:
-            kwargs["version_identifier"] = version_id\
+            kwargs["version_identifier"] = version_id
 
         method = "DELETE"
         uri = compute_uri("data", self._name, **kwargs)
