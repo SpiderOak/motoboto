@@ -141,7 +141,7 @@ class TestBucketAccessControl(unittest.TestCase):
             _ = _list_keys(bucket_name)
         assert context_manager.exception.status == 401 #Unauthorized
 
-        # the bucket's authenticated connection should be able write
+        # the bucket's authenticated connection should be able to write
         auth_key_name = "authenticated_key"
         auth_test_string = "authenticated test string"
         write_key = Key(bucket)
@@ -179,6 +179,72 @@ class TestBucketAccessControl(unittest.TestCase):
         # delete the bucket
         s3_connection.delete_bucket(bucket_name)
         s3_connection.close()
+
+    def test_bucket_with_basic_access_control(self):
+        """
+        test a bucket that has basic access control
+        """
+        bucket_name = "com-spideroak-test-bucket-no-access-control"
+        s3_connection = motoboto.S3Emulator()
+
+        basic_access_control = {"allow_unauth_read"     : true, 
+                                "allow_unauth_write"    : true, 
+                                "allow_unauth_list"     : true, 
+                                "allow_unauth_delete"   : true} 
+        basic_access_control_json = json.dumps(basic_access_control)
+
+        # create the bucket
+        new_bucket = s3_connection.create_bucket(
+            bucket_name, 
+            access_control=basic_access_control_json)
+
+        self.assertTrue(new_bucket is not None)
+        self.assertEqual(new_bucket.name, bucket_name)
+
+        # the bucket's authenticated connection should be able to list keys
+        _ = new_bucket.get_all_keys()
+
+        # an unauthenticated connection should also list keys
+        _ = _list_keys(bucket_name)
+
+        # the bucket's authenticated connection should be able to write
+        auth_key_name = "authenticated_key"
+        auth_test_string = "authenticated test string"
+        write_key = Key(bucket)
+        write_key.name = auth_key_name
+        write_key.set_contents_from_string(auth_test_string)        
+        self.assertTrue(write_key.exists())
+
+        # an unauthenticated connection should also be able to write
+        unauth_key_name = "unauthenticated_key"
+        unauth_test_string = "unauth test string"
+        _ = _write_key_from_string(bucket_name, 
+                                   unath_key_name, 
+                                   unauth_test_string)
+        assert context_manager.exception.status == 401 #Unauthorized
+
+        # the bucket's authenticated connection should be able to read
+        read_key = Key(bucket, auth_key_name)
+        returned_string = read_key.get_contents_as_string()        
+        self.assertEqual(returned_string, auth_test_string)
+
+        # an unauthenticated connection should be denied read_access
+        with self.assertRaises(LumberyardHTTPError) as context_manager:
+            _ = _read_key_to_string(bucket_name, unath_key_name) 
+        assert context_manager.exception.status == 401 #Unauthorized
+
+        # the bucket's authenticated connection should be able to delete
+        read_key.delete()        
+
+        # an unauthenticated connection should be denied delete_access
+        with self.assertRaises(LumberyardHTTPError) as context_manager:
+            _ = _delete_key(bucket_name, unath_key_name) 
+        assert context_manager.exception.status == 401 #Unauthorized
+
+        # delete the bucket
+        s3_connection.delete_bucket(bucket_name)
+        s3_connection.close()
+
 
 if __name__ == "__main__":
     initialize_logging()
