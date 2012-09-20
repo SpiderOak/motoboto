@@ -9,8 +9,6 @@ import json
 import logging
 import os
 import os.path
-import shutil
-import sys
 try:
     import unittest2 as unittest
 except ImportError:
@@ -26,7 +24,7 @@ assert _motoboto
 import motoboto
 from motoboto.s3.key import Key
 
-from tests.test_util import test_dir_path, initialize_logging
+from tests.test_util import initialize_logging
 
 _read_buffer_size = 64 * 1024
 
@@ -46,7 +44,7 @@ def _list_keys(collection_name):
     http_connection.close()
     return json.loads(data)
 
-def _write_key_from_string(collection_name, key_name, data):
+def _archive_key_from_string(collection_name, key_name, data):
     http_connection = \
         UnAuthHTTPConnection(compute_collection_hostname(collection_name))
 
@@ -62,7 +60,7 @@ def _write_key_from_string(collection_name, key_name, data):
 
     return json.loads(response_str)
 
-def _read_key_to_string(collection_name, key_name):
+def _retrieve_key_to_string(collection_name, key_name):
     http_connection = \
         UnAuthHTTPConnection(compute_collection_hostname(collection_name))
 
@@ -105,21 +103,33 @@ def _delete_key(collection_name, key_name):
     http_connection.close()
     return json.loads(data)
 
+def _head_key(collection_name, key_name):
+    http_connection = \
+        UnAuthHTTPConnection(compute_collection_hostname(collection_name))
+
+    kwargs = dict()
+
+    method = "HEAD"
+    uri = compute_uri("data", key_name, **kwargs)
+
+    response = http_connection.request(method, uri, body=None)
+    
+    _ = response.read()
+    headers = response.getheaders()
+    http_connection.close()
+
+    return headers
+
 class TestBucketAccessControl(unittest.TestCase):
     """
     test nimbus.io access_control extensions to bucket
     """
 
     def setUp(self):
-        log = logging.getLogger("setUp")
         self.tearDown()  
-        log.debug("creating %s" % (test_dir_path))
-        os.makedirs(test_dir_path)
 
     def tearDown(self):
-        log = logging.getLogger("tearDown")
-        if os.path.exists(test_dir_path):
-            shutil.rmtree(test_dir_path)
+        pass
 
     def test_bucket_without_access_control(self):
         """
@@ -129,17 +139,17 @@ class TestBucketAccessControl(unittest.TestCase):
         s3_connection = motoboto.S3Emulator()
 
         # create the bucket
-        new_bucket = s3_connection.create_bucket(bucket_name)
-        self.assertTrue(new_bucket is not None)
-        self.assertEqual(new_bucket.name, bucket_name)
+        bucket = s3_connection.create_bucket(bucket_name)
+        self.assertTrue(bucket is not None)
+        self.assertEqual(bucket.name, bucket_name)
 
         # the bucket's authenticated connection should be able to list keys
-        _ = new_bucket.get_all_keys()
+        _ = bucket.get_all_keys()
 
         # an unauthenticated connection should be denied list_access
         with self.assertRaises(LumberyardHTTPError) as context_manager:
             _ = _list_keys(bucket_name)
-        assert context_manager.exception.status == 401 #Unauthorized
+        self.assertEqual(context_manager.exception.status, 401)
 
         # the bucket's authenticated connection should be able to write
         auth_key_name = "authenticated_key"
@@ -153,10 +163,10 @@ class TestBucketAccessControl(unittest.TestCase):
         unauth_key_name = "unauthenticated_key"
         unauth_test_string = "unauth test string"
         with self.assertRaises(LumberyardHTTPError) as context_manager:
-            _ = _write_key_from_string(bucket_name, 
-                                       unath_key_name, 
+            _ = _archive_key_from_string(bucket_name, 
+                                       unauth_key_name, 
                                        unauth_test_string)
-        assert context_manager.exception.status == 401 #Unauthorized
+        self.assertEqual(context_manager.exception.status, 401)
 
         # the bucket's authenticated connection should be able to read
         read_key = Key(bucket, auth_key_name)
@@ -165,16 +175,16 @@ class TestBucketAccessControl(unittest.TestCase):
 
         # an unauthenticated connection should be denied read_access
         with self.assertRaises(LumberyardHTTPError) as context_manager:
-            _ = _read_key_to_string(bucket_name, unath_key_name) 
-        assert context_manager.exception.status == 401 #Unauthorized
+            _ = _retrieve_key_to_string(bucket_name, unauth_key_name) 
+        self.assertEqual(context_manager.exception.status, 401)
 
         # the bucket's authenticated connection should be able to delete
         read_key.delete()        
 
         # an unauthenticated connection should be denied delete_access
         with self.assertRaises(LumberyardHTTPError) as context_manager:
-            _ = _delete_key(bucket_name, unath_key_name) 
-        assert context_manager.exception.status == 401 #Unauthorized
+            _ = _delete_key(bucket_name, unauth_key_name) 
+        self.assertEqual(context_manager.exception.status, 401)
 
         # delete the bucket
         s3_connection.delete_bucket(bucket_name)
@@ -184,25 +194,26 @@ class TestBucketAccessControl(unittest.TestCase):
         """
         test a bucket that has basic access control
         """
+        log = logging.getLogger("setUp")
         bucket_name = "com-spideroak-test-bucket-no-access-control"
         s3_connection = motoboto.S3Emulator()
 
-        basic_access_control = {"allow_unauth_read"     : true, 
-                                "allow_unauth_write"    : true, 
-                                "allow_unauth_list"     : true, 
-                                "allow_unauth_delete"   : true} 
+        basic_access_control = {"allow_unauth_read"     : True, 
+                                "allow_unauth_write"    : True, 
+                                "allow_unauth_list"     : True, 
+                                "allow_unauth_delete"   : True} 
         basic_access_control_json = json.dumps(basic_access_control)
 
         # create the bucket
-        new_bucket = s3_connection.create_bucket(
+        bucket = s3_connection.create_bucket(
             bucket_name, 
             access_control=basic_access_control_json)
 
-        self.assertTrue(new_bucket is not None)
-        self.assertEqual(new_bucket.name, bucket_name)
+        self.assertTrue(bucket is not None)
+        self.assertEqual(bucket.name, bucket_name)
 
         # the bucket's authenticated connection should be able to list keys
-        _ = new_bucket.get_all_keys()
+        _ = bucket.get_all_keys()
 
         # an unauthenticated connection should also list keys
         _ = _list_keys(bucket_name)
@@ -218,28 +229,28 @@ class TestBucketAccessControl(unittest.TestCase):
         # an unauthenticated connection should also be able to write
         unauth_key_name = "unauthenticated_key"
         unauth_test_string = "unauth test string"
-        _ = _write_key_from_string(bucket_name, 
-                                   unath_key_name, 
-                                   unauth_test_string)
-        assert context_manager.exception.status == 401 #Unauthorized
+        archive_result = _archive_key_from_string(bucket_name, 
+                                                  unauth_key_name, 
+                                                  unauth_test_string)
+        self.assertTrue("version_identifier" in archive_result)
+        head_result = _head_key(bucket_name, unauth_key_name)
+        log.info("head_result = {0}".format(head_result))
 
         # the bucket's authenticated connection should be able to read
         read_key = Key(bucket, auth_key_name)
         returned_string = read_key.get_contents_as_string()        
         self.assertEqual(returned_string, auth_test_string)
 
-        # an unauthenticated connection should be denied read_access
-        with self.assertRaises(LumberyardHTTPError) as context_manager:
-            _ = _read_key_to_string(bucket_name, unath_key_name) 
-        assert context_manager.exception.status == 401 #Unauthorized
+        # an unauthenticated connection should also be able to read
+        returned_string = _retrieve_key_to_string(bucket_name, unauth_key_name) 
+        self.assertEqual(returned_string, unauth_test_string)
 
         # the bucket's authenticated connection should be able to delete
         read_key.delete()        
 
-        # an unauthenticated connection should be denied delete_access
-        with self.assertRaises(LumberyardHTTPError) as context_manager:
-            _ = _delete_key(bucket_name, unath_key_name) 
-        assert context_manager.exception.status == 401 #Unauthorized
+        # an unauthenticated connection should also be able to delete
+        delete_result = _delete_key(bucket_name, unauth_key_name) 
+        self.assertTrue(delete_result["success"])
 
         # delete the bucket
         s3_connection.delete_bucket(bucket_name)

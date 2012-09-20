@@ -13,7 +13,8 @@ from lumberyard.http_util import compute_default_hostname, \
         compute_default_collection_name, \
         compute_uri
 
-from motoboto.identity import load_identity_from_environment, load_identity_from_file
+from motoboto.identity import load_identity_from_environment, \
+        load_identity_from_file
 from motoboto.s3.bucket import Bucket
 
 class S3Emulator(object):
@@ -60,7 +61,7 @@ class S3Emulator(object):
         """
         return Bucket(self._identity, bucket_name.decode("utf-8"))
 
-    def create_bucket(self, bucket_name):
+    def create_bucket(self, bucket_name, access_control=None):
         """
         create a nimbus.io collection, similar to an s3 bucket
 
@@ -112,11 +113,19 @@ class S3Emulator(object):
             name=bucket_name
         )
 
-        self._log.info("requesting %s" % (uri, ))
+        body = None
+        headers = dict()
+        if access_control is not None:
+            body = access_control
+            headers["Content-Type"] = "application/json"
+            headers["Content-Length"] = len(body)
+
+        self._log.info("requesting %s %s" % (uri, headers))
         try:
             response = http_connection.request(method, 
                                                uri, 
-                                               body=None, 
+                                               body=body,
+                                               headers=headers,
                                                expected_status=httplib.CREATED)
         except LumberyardHTTPError, instance:
             self._log.error(str(instance))
