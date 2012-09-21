@@ -131,20 +131,22 @@ class TestBucketAccessControl(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_bucket_without_access_control(self):
-        """
-        test a bucket that has no access control
-        """
-        bucket_name = "com-spideroak-test-bucket-no-access-control"
+    def _bucket_without_unauth_access(self, access_control):
+        bucket_name = "com-spideroak-bucket-without-unauth-access"
         s3_connection = motoboto.S3Emulator()
         for bucket in s3_connection.get_all_buckets():
             if bucket.name == bucket_name:
-               s3_connection.delete_bucket(bucket_name)
+                s3_connection.delete_bucket(bucket_name)
+
+        if access_control is None:
+            access_control_json = None
+        else:
+            access_control_json = json.dumps(access_control)
 
         # create the bucket
-        bucket = s3_connection.create_bucket(bucket_name)
-        self.assertTrue(bucket is not None)
-        self.assertEqual(bucket.name, bucket_name)
+        bucket = \
+            s3_connection.create_bucket(bucket_name, 
+                                        access_control=access_control_json)
 
         # the bucket's authenticated connection should be able to list keys
         _ = bucket.get_all_keys()
@@ -193,28 +195,36 @@ class TestBucketAccessControl(unittest.TestCase):
         s3_connection.delete_bucket(bucket_name)
         s3_connection.close()
 
-    def test_bucket_with_basic_access_control(self):
+    def test_bucket_without_unauth_access(self):
         """
-        test a bucket that has basic access control
+        test a bucket with access controls which should deny  unauth access
         """
-        log = logging.getLogger("setUp")
-        bucket_name = "com-spideroak-test-bucket-with-access-control"
+        test_cases = [
+            None,
+            {"version"               : "1.0",
+             "allow_unauth_read"     : False, 
+             "allow_unauth_write"    : False, 
+             "allow_unauth_list"     : False, 
+             "allow_unauth_delete"   : False}, 
+             # can't test whitelist here
+        ]
+
+        for access_control in test_cases:
+            self._bucket_without_unauth_access(access_control)
+
+    def _bucket_with_unauth_access(self, bucket_name, access_control):
+        log = logging.getLogger("_bucket_with_unauth_access")
         s3_connection = motoboto.S3Emulator()
         for bucket in s3_connection.get_all_buckets():
             if bucket.name == bucket_name:
-               s3_connection.delete_bucket(bucket_name)
+                s3_connection.delete_bucket(bucket_name)
 
-        basic_access_control = {"version"               : "1.0",
-                                "allow_unauth_read"     : True, 
-                                "allow_unauth_write"    : True, 
-                                "allow_unauth_list"     : True, 
-                                "allow_unauth_delete"   : True} 
-        basic_access_control_json = json.dumps(basic_access_control)
+        access_control_json = json.dumps(access_control)
 
         # create the bucket
-        bucket = s3_connection.create_bucket(
-            bucket_name, 
-            access_control=basic_access_control_json)
+        bucket = \
+            s3_connection.create_bucket(bucket_name, 
+                                        access_control=access_control_json)
 
         self.assertTrue(bucket is not None)
         self.assertEqual(bucket.name, bucket_name)
@@ -263,6 +273,109 @@ class TestBucketAccessControl(unittest.TestCase):
         s3_connection.delete_bucket(bucket_name)
         s3_connection.close()
 
+
+    def test_bucket_with_unauth_access(self):
+        """
+        test a bucket with access controls which should allow unauth access
+        """
+        bucket_name = "com-spideroak-bucket-with-unauth-access"
+        test_cases = [
+            {"version"               : "1.0",
+             "allow_unauth_read"     : True, 
+             "allow_unauth_write"    : True, 
+             "allow_unauth_list"     : True, 
+             "allow_unauth_delete"   : True},
+            {"version"               : "1.0",
+             "allow_unauth_read"     : True, 
+             "allow_unauth_write"    : True, 
+             "allow_unauth_list"     : True, 
+             "allow_unauth_delete"   : True,
+             "ipv4_whitelist" : ["0.0.0.0/0", ], }, 
+        ] 
+
+        for access_control in test_cases:
+            self._bucket_with_unauth_access(bucket_name, access_control)
+
+    def _bucket_with_unauth_locations(self, bucket_name, access_control):
+        log = logging.getLogger("_bucket_with_unauth_locations")
+        s3_connection = motoboto.S3Emulator()
+        for bucket in s3_connection.get_all_buckets():
+            if bucket.name == bucket_name:
+                s3_connection.delete_bucket(bucket_name)
+
+        access_control_json = json.dumps(access_control)
+
+        # create the bucket
+        bucket = \
+            s3_connection.create_bucket(bucket_name, 
+                                        access_control=access_control_json)
+
+        self.assertTrue(bucket is not None)
+        self.assertEqual(bucket.name, bucket_name)
+
+        # the bucket's authenticated connection should be able to list keys
+        _ = bucket.get_all_keys()
+
+        # in location an unauthenticated connection should be denied list_access
+        with self.assertRaises(LumberyardHTTPError) as context_manager:
+            _ = _list_keys(bucket_name)
+        self.assertEqual(context_manager.exception.status, 401)
+
+        # the bucket's authenticated connection should be able to write
+        auth_key_name = "authenticated_key"
+        auth_test_string = "authenticated test string"
+        write_key = Key(bucket)
+        write_key.name = auth_key_name
+        write_key.set_contents_from_string(auth_test_string)        
+        self.assertTrue(write_key.exists())
+
+        # an unauthenticated connection should also be able to write
+        unauth_key_name = "unauthenticated_key"
+        unauth_test_string = "unauth test string"
+        archive_result = _archive_key_from_string(bucket_name, 
+                                                  unauth_key_name, 
+                                                  unauth_test_string)
+        self.assertTrue("version_identifier" in archive_result)
+        head_result = _head_key(bucket_name, unauth_key_name)
+        log.info("head_result = {0}".format(head_result))
+
+        # the bucket's authenticated connection should be able to read
+        read_key = Key(bucket, auth_key_name)
+        returned_string = read_key.get_contents_as_string()        
+        self.assertEqual(returned_string, auth_test_string)
+
+        # an unauthenticated connection should also be able to read
+        returned_string = _retrieve_key_to_string(bucket_name, unauth_key_name) 
+        self.assertEqual(returned_string, unauth_test_string)
+
+        # the bucket's authenticated connection should be able to delete
+        read_key.delete()        
+
+        # an unauthenticated connection should also be able to delete
+        delete_result = _delete_key(bucket_name, unauth_key_name) 
+        self.assertTrue(delete_result["success"])
+
+        # delete the bucket
+        s3_connection.delete_bucket(bucket_name)
+        s3_connection.close()
+
+
+    def test_bucket_with_unauth_locations(self):
+        """
+        test a bucket with location access controls which should allow unauth access
+        """
+        bucket_name = "com-spideroak-bucket-with-unauth-locations"
+        test_cases = [
+            {"version" : "1.0",
+             "locations" : [{"prefix" : "/data",
+                            "allow_unauth_read"     : True, 
+                            "allow_unauth_write"    : True, 
+                            "allow_unauth_delete"   : True,}]},
+                            
+        ] 
+
+        for access_control in test_cases:
+            self._bucket_with_unauth_locations(bucket_name, access_control)
 
 if __name__ == "__main__":
     initialize_logging()
