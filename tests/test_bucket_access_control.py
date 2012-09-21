@@ -137,6 +137,9 @@ class TestBucketAccessControl(unittest.TestCase):
         """
         bucket_name = "com-spideroak-test-bucket-no-access-control"
         s3_connection = motoboto.S3Emulator()
+        for bucket in s3_connection.get_all_buckets():
+            if bucket.name == bucket_name:
+               s3_connection.delete_bucket(bucket_name)
 
         # create the bucket
         bucket = s3_connection.create_bucket(bucket_name)
@@ -195,10 +198,14 @@ class TestBucketAccessControl(unittest.TestCase):
         test a bucket that has basic access control
         """
         log = logging.getLogger("setUp")
-        bucket_name = "com-spideroak-test-bucket-no-access-control"
+        bucket_name = "com-spideroak-test-bucket-with-access-control"
         s3_connection = motoboto.S3Emulator()
+        for bucket in s3_connection.get_all_buckets():
+            if bucket.name == bucket_name:
+               s3_connection.delete_bucket(bucket_name)
 
-        basic_access_control = {"allow_unauth_read"     : True, 
+        basic_access_control = {"version"               : "1.0",
+                                "allow_unauth_read"     : True, 
                                 "allow_unauth_write"    : True, 
                                 "allow_unauth_list"     : True, 
                                 "allow_unauth_delete"   : True} 
