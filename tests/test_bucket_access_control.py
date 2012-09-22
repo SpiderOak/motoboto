@@ -377,6 +377,45 @@ class TestBucketAccessControl(unittest.TestCase):
         for access_control in test_cases:
             self._bucket_with_unauth_locations(bucket_name, access_control)
 
+    def test_setting_bucket_access_control(self):
+        """
+        test setting access_control on an existing bucket
+        """
+        log = logging.getLogger("_test_setting_bucket_access_control")
+        bucket_name = "com-spideroak-set-bucket-access-control"
+        s3_connection = motoboto.S3Emulator()
+        for bucket in s3_connection.get_all_buckets():
+            if bucket.name == bucket_name:
+                s3_connection.delete_bucket(bucket_name)
+
+        # create the bucket without access control
+        bucket = s3_connection.create_bucket(bucket_name)
+
+        # the bucket's authenticated connection should be able to list keys
+        _ = bucket.get_all_keys()
+
+        # an unauthenticated connection should be denied list_access
+        with self.assertRaises(LumberyardHTTPError) as context_manager:
+            _ = _list_keys(bucket_name)
+        self.assertEqual(context_manager.exception.status, 401)
+
+        # set the bucket's access_control to allow listing
+        access_control_dict = {"version" : "1.0",
+                               "allow_unauth_list" : True} 
+
+        access_control = json.dumps(access_control_dict)
+        bucket.configure_access_control(access_control)
+
+        # the bucket's authenticated connection should be able to list keys
+        _ = bucket.get_all_keys()
+
+        # an unauthenticated connection should also list keys
+        _ = _list_keys(bucket_name)
+
+        # delete the bucket
+        s3_connection.delete_bucket(bucket_name)
+        s3_connection.close()
+
 if __name__ == "__main__":
     initialize_logging()
     unittest.main()

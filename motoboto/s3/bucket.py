@@ -80,10 +80,51 @@ class Bucket(object):
         self._log.info("putting %s" % (uri, ))
         response = http_connection.request(method, uri)
         
-        response.read()
+        data = response.read()
 
         http_connection.close()
 
+        return json.loads(data)
+
+    def configure_access_control(self, access_control):
+        """
+        set the bucket's access_control propoerty to a dict
+        """
+        http_connection = HTTPConnection(
+            compute_default_hostname(),
+            self._identity.user_name,
+            self._identity.auth_key,
+            self._identity.auth_key_id
+        )
+        method = "PUT"
+        uri = compute_uri(
+            "/".join([
+                "customers", 
+                self._identity.user_name, 
+                "collections",
+                self._collection_name
+            ]),
+            access_control="update"
+        )
+
+        body = None
+        headers = dict()
+        if access_control is not None:
+            body = access_control
+            headers["Content-Type"] = "application/json"
+            headers["Content-Length"] = len(body)
+
+        self._log.info("putting %s %s" % (uri, headers))
+        response = http_connection.request(method, 
+                                           uri, 
+                                           body=body, 
+                                           headers=headers)
+        
+        data = response.read()
+
+        http_connection.close()
+
+        return json.loads(data)
 
     def get_all_keys(
         self, max_keys=1000, prefix="", marker="", delimiter=""
