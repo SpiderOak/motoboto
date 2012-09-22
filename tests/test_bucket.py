@@ -88,11 +88,6 @@ class TestBucket(unittest.TestCase):
                 bucket_in_list = True
         self.assertTrue(bucket_in_list)
 
-        # create a duplicate bucket
-        # s3 accepts this
-        x = self._s3_connection.create_bucket(bucket_name)
-        self.assertEqual(x.name, new_bucket.name)
-
         # list all buckets, ours should be there
         bucket_in_list = False
         bucket_list = self._s3_connection.get_all_buckets()
