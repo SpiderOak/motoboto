@@ -84,7 +84,10 @@ class Bucket(object):
 
         http_connection.close()
 
-        return json.loads(data)
+        result = json.loads(data)
+        assert result["success"]
+
+        self._versioning = versioning
 
     def configure_access_control(self, access_control):
         """
