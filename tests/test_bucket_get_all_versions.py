@@ -248,16 +248,18 @@ class TestBucketGetAllVersions(unittest.TestCase):
         keys = _create_some_keys(bucket, key_names)
         
         test_marker = ""
+        test_version_id_marker = ""
         result_names = list()
         while True:
-            result = bucket.get_all_versions(
-                max_keys=test_max, key_marker=test_marker
-            )
+            result = bucket.get_all_versions(max_keys=test_max, 
+                                             key_marker=test_marker,
+                                             version_id_marker=test_version_id_marker)
             if len(result) == 0:
                 break
             self.assertTrue(len(result) <= test_max, len(result))
             result_names.extend([key.name for key in result])
             test_marker=result[-1].name
+            test_version_id_marker=result[-1].version_id
 
         self.assertEqual(len(result_names), len(key_names))
         self.assertEqual(set(result_names), set(key_names))
