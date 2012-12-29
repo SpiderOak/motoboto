@@ -87,7 +87,7 @@ class TestBucketGetAllKeys(unittest.TestCase):
         """
         test get_all_keys() on an empty buckey
         """
-        bucket_name = "com-spideroak-test-get-all-keys"
+        bucket_name = "com-spideroak-test-get-all-keys-empty-bucket"
 
         # create the bucket
         bucket = self._s3_connection.create_bucket(bucket_name)
@@ -105,7 +105,7 @@ class TestBucketGetAllKeys(unittest.TestCase):
         """
         test that the max keys parameter restricts the number of keys
         """
-        bucket_name = "com-spideroak-test-get-all-keys"
+        bucket_name = "com-spideroak-test-get-all-keys-max-keys"
         key_names = [u"test_key1", u"test_key2", u"test_key3", ]
         test_max = len(key_names) - 1
 
@@ -118,7 +118,7 @@ class TestBucketGetAllKeys(unittest.TestCase):
         keys = _create_some_keys(bucket, key_names)
 
         result = bucket.get_all_keys(max_keys=test_max)
-        self.assertTrue(len(result) <= test_max)
+        self.assertTrue(len(result) <= test_max, len(result))
 
         _clear_bucket(self._s3_connection, bucket)
         
@@ -126,7 +126,7 @@ class TestBucketGetAllKeys(unittest.TestCase):
         """
         test storing and retrieving a directory tree
         """
-        bucket_name = "com-spideroak-test-get-all-keys"
+        bucket_name = "com-spideroak-test-get-all-keys-tree"
         # 2011-12-04 -- s3 clips leading slash
         key_names = [
             u"aaa/b/cccc/1", 
@@ -171,7 +171,7 @@ class TestBucketGetAllKeys(unittest.TestCase):
         """
         test using a delimiter
         """
-        bucket_name = "com-spideroak-test-get-all-keys"
+        bucket_name = "com-spideroak-test-get-all-keys-delimiter"
         # 2011-12-04 -- s3 clips leading slash
         key_names = [
             u"aaa/b/cccc/1", 
@@ -211,7 +211,7 @@ class TestBucketGetAllKeys(unittest.TestCase):
         """
         test using a marker
         """
-        bucket_name = "com-spideroak-test-get-all-keys"
+        bucket_name = "com-spideroak-test-get-all-keys-marker"
         # 2011-12-04 -- s3 clips leading slash
         key_names = [
             u"aaa/b/cccc/1", 

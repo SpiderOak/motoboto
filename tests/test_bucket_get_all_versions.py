@@ -90,7 +90,7 @@ class TestBucketGetAllVersions(unittest.TestCase):
         """
         test get_all_versions() on an empty buckey
         """
-        bucket_name = "com-spideroak-test-get-all-versions"
+        bucket_name = "com-spideroak-test-get-all-versions-empty-bucket"
 
         # create the bucket
         bucket = self._s3_connection.create_bucket(bucket_name)
@@ -109,7 +109,7 @@ class TestBucketGetAllVersions(unittest.TestCase):
         """
         test that we get multiple versions of a file
         """
-        bucket_name = "com-spideroak-test-get-all-versions"
+        bucket_name = "com-spideroak-test-get-all-versions-of-one-file"
         key_names = [u"test-key1", u"test-key1", u"test-key1", ]
 
         # create the bucket
@@ -140,7 +140,7 @@ class TestBucketGetAllVersions(unittest.TestCase):
         """
         test storing and retrieving a directory tree
         """
-        bucket_name = "com-spideroak-test-get-all-versions"
+        bucket_name = "com-spideroak-test-get-all-versions-tree"
         # 2011-12-04 -- s3 clips leading slash
         key_names = [
             u"aaa/b/cccc/1", 
@@ -183,7 +183,7 @@ class TestBucketGetAllVersions(unittest.TestCase):
         """
         test using a delimiter
         """
-        bucket_name = "com-spideroak-test-get-all-versions"
+        bucket_name = "com-spideroak-test-get-all-versions-delimter"
         # 2011-12-04 -- s3 clips leading slash
         key_names = [
             u"aaa/b/cccc/1", 
@@ -224,7 +224,7 @@ class TestBucketGetAllVersions(unittest.TestCase):
         """
         test using a marker
         """
-        bucket_name = "com-spideroak-test-get-all-versions"
+        bucket_name = "com-spideroak-test-get-all-versions-marker"
         # 2011-12-04 -- s3 clips leading slash
         key_names = [
             u"aaa/b/cccc/1", 
@@ -255,7 +255,7 @@ class TestBucketGetAllVersions(unittest.TestCase):
             )
             if len(result) == 0:
                 break
-            self.assertTrue(len(result) <= test_max)
+            self.assertTrue(len(result) <= test_max, len(result))
             result_names.extend([key.name for key in result])
             test_marker=result[-1].name
 
