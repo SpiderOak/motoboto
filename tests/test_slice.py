@@ -55,8 +55,7 @@ class TestSlice(unittest.TestCase):
         if os.path.exists(test_dir_path):
             shutil.rmtree(test_dir_path)
 
-    def _set_up_single_archive(self):
-        bucket_name = "com-spideroak-test-key-with-files"
+    def _set_up_single_archive(self, bucket_name):
         key_name = "test-key"
         test_file_path = os.path.join(
             test_dir_path, "test-orignal"
@@ -95,8 +94,7 @@ class TestSlice(unittest.TestCase):
         # delete the bucket
         self._s3_connection.delete_bucket(key._bucket.name)
 
-    def _set_up_multipart_archive(self):
-        bucket_name = "com-spideroak-test-simple-multipart"
+    def _set_up_multipart_archive(self, bucket_name):
         key_name = "test_key"
         path_template = os.path.join(
             test_dir_path, "test_simple_multipart_%02d"
@@ -146,7 +144,8 @@ class TestSlice(unittest.TestCase):
         """
         test get_contents_to_file for the whole archive
         """
-        test_data, key = self._set_up_single_archive()
+        bucket_name = "com-spideroak-test-entire-single-part"
+        test_data, key = self._set_up_single_archive(bucket_name)
 
         # read back the data
         retrieve_file_path = os.path.join(
@@ -169,7 +168,8 @@ class TestSlice(unittest.TestCase):
         """
         test get_contents_to_file for various slices
         """
-        test_data, key = self._set_up_single_archive()
+        bucket_name = "com-spideroak-test-slice-single-part"
+        test_data, key = self._set_up_single_archive(bucket_name)
         test_params = [(0, 1024), (1024, 2048), (len(test_data)-2048, 2048)]
 
         for slice_offset, slice_size in test_params:
@@ -200,7 +200,8 @@ class TestSlice(unittest.TestCase):
         """
         test get_contents_to_file for the whole archive
         """
-        test_data, key = self._set_up_multipart_archive()
+        bucket_name = "com-spideroak-test-slice-entire-multipart"
+        test_data, key = self._set_up_multipart_archive(bucket_name)
 
         # read back the data
         retrieve_file_path = os.path.join(
@@ -223,7 +224,8 @@ class TestSlice(unittest.TestCase):
         """
         test get_contents_to_file for various slices of multipart
         """
-        test_data, key = self._set_up_multipart_archive()
+        bucket_name = "com-spideroak-test-slice-multipart"
+        test_data, key = self._set_up_multipart_archive(bucket_name)
         # the points where multiparts join
         seams = range(0, 
                       _multipart_part_size*_multipart_part_count, 

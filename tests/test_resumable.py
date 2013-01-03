@@ -72,7 +72,7 @@ class TestResumableDownloadHandler(unittest.TestCase):
         test get_contents_to_file without any interruption. 
         """
         log = logging.getLogger("test_uninterrupted_resumable")
-        bucket_name = "com-spideroak-test-key-with-files"
+        bucket_name = "com-spideroak-test-uninterrupted-resumable"
         key_name = "test-key"
         test_file_path = os.path.join(
             test_dir_path, "test-orignal"
@@ -139,7 +139,7 @@ class TestResumableDownloadHandler(unittest.TestCase):
         test get_contents_to_file with a simulated interruption. 
         """
         log = logging.getLogger("test_uninterrupted_resumable")
-        bucket_name = "com-spideroak-test-key-with-files"
+        bucket_name = "com-spideroak-test-interruped-resumable"
         key_name = "test-key"
         test_file_path = os.path.join(
             test_dir_path, "test-orignal"

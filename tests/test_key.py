@@ -67,7 +67,7 @@ class TestKey(unittest.TestCase):
         """
         test retrieving a key that doesn't exist
         """
-        bucket_name = "com-spideroak-test-key-with-strings"
+        bucket_name = "com-spideroak-test-nonexistent-key"
         key_name = u"test-key"
         test_string = os.urandom(1024)
 
@@ -306,7 +306,7 @@ class TestKey(unittest.TestCase):
         """
         test that metadata does not persist when a key is written over
         """
-        bucket_name = "com-spideroak-test-key-with-meta"
+        bucket_name = "com-spideroak-test-write-over-key-with-meta"
         key_name = u"test-key"
         test_string = os.urandom(1024)
         test_string_1 = os.urandom(1024)
