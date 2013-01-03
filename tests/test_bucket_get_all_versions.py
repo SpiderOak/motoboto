@@ -120,19 +120,20 @@ class TestBucketGetAllVersions(unittest.TestCase):
         _clear_keys(bucket)
         
         keys_with_data = _create_some_keys_with_data(bucket, key_names)
-
-        # keys are retrived newest first
-        keys_with_data.reverse()
+        keys_with_data_dict = \
+            dict([(key.version_id, data, ) for (key, data) in keys_with_data])
 
         result = bucket.get_all_versions()
         self.assertEqual(len(result), len(key_names))
-        for (_, original_data), result_key in zip(keys_with_data, result):
+        for result_key in result:
             read_key = Key(bucket)
             read_key.name = result_key.name
             read_key_data = read_key.get_contents_as_string(
                 version_id=result_key.version_id
             )
-            self.assertEqual(read_key_data, original_data)
+            self.assertEqual(read_key_data, 
+                             keys_with_data_dict[result_key.version_id], 
+                             result_key.name)
 
         _clear_bucket(self._s3_connection, bucket)
         
