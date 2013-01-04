@@ -48,6 +48,10 @@ class S3Emulator(object):
             compute_default_collection_name(self._identity.user_name)
         )
 
+    @property
+    def default_bucket(self):
+        return self._default_bucket
+
     def close(self):
         """
         close connection to motoboto
