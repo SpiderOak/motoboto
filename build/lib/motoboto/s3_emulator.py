@@ -67,7 +67,7 @@ class S3Emulator(object):
         get the contents of an existing nimbus.io collection, 
         similar to an s3 bucket
         """
-        return Bucket(self._identity, bucket_name.decode("utf-8"))
+        return Bucket(self._identity, bucket_name)
 
     def create_bucket(self, bucket_name, access_control=None):
         """
@@ -144,7 +144,7 @@ class S3Emulator(object):
         response.read()
         http_connection.close()
 
-        return Bucket(self._identity, bucket_name.decode("utf-8"))
+        return Bucket(self._identity, bucket_name)
 
     def get_all_buckets(self):
         """
@@ -176,13 +176,13 @@ class S3Emulator(object):
         self._log.info("reading response")
         data = response.read()
         http_connection.close()
-        collection_list = json.loads(data)
+        collection_list = json.loads(data.decode("utf-8"))
 
         bucket_list = list()
         for collection_dict in collection_list:
             bucket = Bucket(
                 self._identity, 
-                collection_dict["name"].decode("utf-8"), 
+                collection_dict["name"], 
                 versioning=collection_dict["versioning"]
             )
             bucket_list.append(bucket)

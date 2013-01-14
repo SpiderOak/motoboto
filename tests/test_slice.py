@@ -137,7 +137,7 @@ class TestSlice(unittest.TestCase):
         # complete the upload
         multipart_upload.complete_upload()
 
-        return "".join(test_blobs), bucket.get_key(key_name)
+        return b"".join(test_blobs), bucket.get_key(key_name)
 
     @unittest.skipIf(not _motoboto, "motoboto only")
     def test_entire_single_part(self):

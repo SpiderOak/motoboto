@@ -192,7 +192,7 @@ class TestResumableDownloadHandler(unittest.TestCase):
         download_handler._save_tracker_info(write_key)
 
         # resume the retrieve
-        with open(retrieve_file_path, "wba") as retrieve_file:
+        with open(retrieve_file_path, "wb") as retrieve_file:
             write_key.get_contents_to_file(retrieve_file, 
                                            res_download_handler=\
                                             download_handler)      

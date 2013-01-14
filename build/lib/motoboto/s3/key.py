@@ -218,7 +218,7 @@ class Key(object):
         response_str = response.read()
         http_connection.close()
 
-        response_dict = json.loads(response_str)
+        response_dict = json.loads(response_str.decode("utf-8"))
         self._version_id = response_dict["version_identifier"]
 
     def set_contents_from_file(
@@ -286,7 +286,7 @@ class Key(object):
         response_str = response.read()
         http_connection.close()
 
-        response_dict = json.loads(response_str)
+        response_dict = json.loads(response_str.decode("utf-8"))
         self._version_id = response_dict["version_identifier"]
 
     def get_contents_as_string(self, 
@@ -391,7 +391,7 @@ class Key(object):
 
         http_connection.close()
 
-        return "".join(body_list)
+        return b"".join(body_list)
 
     def get_contents_to_file(self, 
                              file_object, 
@@ -617,7 +617,7 @@ class Key(object):
 
         http_connection.close()
 
-        self.update_metadata(json.loads(data))
+        self.update_metadata(json.loads(data.decode("utf-8")))
 
         return self._metadata.get(meta_key)
 

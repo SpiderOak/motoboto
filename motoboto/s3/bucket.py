@@ -84,7 +84,7 @@ class Bucket(object):
 
         http_connection.close()
 
-        result = json.loads(data)
+        result = json.loads(data.decode("utf-8"))
         assert result["success"]
 
         self._versioning = versioning
@@ -127,7 +127,7 @@ class Bucket(object):
 
         http_connection.close()
 
-        return json.loads(data)
+        return json.loads(data.decode("utf-8"))
 
     def get_all_keys(
         self, max_keys=1000, prefix="", marker="", delimiter=""
@@ -176,7 +176,7 @@ class Bucket(object):
         
         data = response.read()
         http_connection.close()
-        data_dict = json.loads(data)
+        data_dict = json.loads(data.decode("utf-8"))
 
         if "key_data" in data_dict:
             result_list = TruncatableList()
@@ -255,7 +255,7 @@ class Bucket(object):
         
         data = response.read()
         http_connection.close()
-        data_dict = json.loads(data)
+        data_dict = json.loads(data.decode("utf-8"))
 
         if "key_data" in data_dict:
             result_list = TruncatableList()
@@ -280,7 +280,7 @@ class Bucket(object):
         self, max_uploads=1000, key_marker="", upload_id_marker=""
     ):
         """
-        max_uploadss
+        max_uploads
             The maximum number of keys to retrieve
 
         key_marker
@@ -311,7 +311,7 @@ class Bucket(object):
         data = response.read()
         http_connection.close()
 
-        data_dict = json.loads(data)
+        data_dict = json.loads(data.decode("utf-8"))
         result_list = TruncatableList()
         for conjoined_dict in data_dict["conjoined_list"]:
             result_list.append(MultiPartUpload(bucket=self, **conjoined_dict)
@@ -385,7 +385,7 @@ class Bucket(object):
         data = response.read()
         http_connection.close()
     
-        return json.loads(data)
+        return json.loads(data.decode("utf-8"))
 
     def initiate_multipart_upload(self, key_name):
         """
@@ -410,7 +410,7 @@ class Bucket(object):
 
         http_connection.close()
 
-        result_dict = json.loads(data)
+        result_dict = json.loads(data.decode("utf-8"))
 
         return MultiPartUpload(bucket=self, **result_dict)
 

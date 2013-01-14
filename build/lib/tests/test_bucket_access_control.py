@@ -45,7 +45,7 @@ def _list_keys(collection_name):
     
     data = response.read()
     http_connection.close()
-    return json.loads(data)
+    return json.loads(data.decode("utf-8"))
 
 def _archive_key_from_string(collection_name, key_name, data):
     http_connection = \
@@ -61,7 +61,7 @@ def _archive_key_from_string(collection_name, key_name, data):
     response_str = response.read()
     http_connection.close()
 
-    return json.loads(response_str)
+    return json.loads(response_str.decode("utf-8"))
 
 def _retrieve_key_to_string(collection_name, key_name):
     http_connection = \
@@ -104,7 +104,7 @@ def _delete_key(collection_name, key_name):
     
     data = response.read()
     http_connection.close()
-    return json.loads(data)
+    return json.loads(data.decode("utf-8"))
 
 def _head_key(collection_name, key_name):
     http_connection = \
@@ -179,7 +179,7 @@ class TestBucketAccessControl(unittest.TestCase):
         # the bucket's authenticated connection should be able to read
         read_key = Key(bucket, auth_key_name)
         returned_string = read_key.get_contents_as_string()        
-        self.assertEqual(returned_string, auth_test_string)
+        self.assertEqual(returned_string.decode("utf-8"), auth_test_string)
 
         # an unauthenticated connection should be denied read_access
         with self.assertRaises(LumberyardHTTPError) as context_manager:
@@ -259,7 +259,7 @@ class TestBucketAccessControl(unittest.TestCase):
         # the bucket's authenticated connection should be able to read
         read_key = Key(bucket, auth_key_name)
         returned_string = read_key.get_contents_as_string()        
-        self.assertEqual(returned_string, auth_test_string)
+        self.assertEqual(returned_string.decode("utf-8"), auth_test_string)
 
         # an unauthenticated connection should also be able to read
         returned_string = _retrieve_key_to_string(bucket_name, unauth_key_name) 
@@ -345,7 +345,7 @@ class TestBucketAccessControl(unittest.TestCase):
         # the bucket's authenticated connection should be able to read
         read_key = Key(bucket, auth_key_name)
         returned_string = read_key.get_contents_as_string()        
-        self.assertEqual(returned_string, auth_test_string)
+        self.assertEqual(returned_string.decode("utf-8"), auth_test_string)
 
         # an unauthenticated connection should also be able to read
         returned_string = _retrieve_key_to_string(bucket_name, unauth_key_name) 
