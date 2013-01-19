@@ -64,7 +64,6 @@ class TestMultipart(unittest.TestCase):
         test a simple multipart upload
         """
         log = logging.getLogger("test_simple_multipart")
-        bucket_name = "com-spideroak-test-simple-multipart"
         key_name = "test_key"
         part_count = 2
         path_template = os.path.join(
@@ -81,9 +80,8 @@ class TestMultipart(unittest.TestCase):
                 output_file.write(test_blob)
 
         # create the bucket
-        bucket = self._s3_connection.create_bucket(bucket_name)
+        bucket = self._s3_connection.create_unique_bucket()
         self.assertTrue(bucket is not None)
-        self.assertEqual(bucket.name, bucket_name)
 
         # assert that we have no uploads in progress
         upload_list = bucket.get_all_multipart_uploads()
@@ -119,7 +117,7 @@ class TestMultipart(unittest.TestCase):
         key.delete()
         
         # delete the bucket
-        self._s3_connection.delete_bucket(bucket_name)
+        self._s3_connection.delete_bucket(bucket.name)
         
 if __name__ == "__main__":
     initialize_logging()

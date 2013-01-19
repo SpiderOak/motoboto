@@ -73,12 +73,10 @@ class TestBucketGetAllKeys(unittest.TestCase):
         test get_all_keys() on an empty buckey
         """
         log = logging.getLogger("empty")
-        bucket_name = "com-spideroak-test-get-all-keys"
 
         # create the bucket
-        bucket = self._s3_connection.create_bucket(bucket_name)
+        bucket = self._s3_connection.create_unique_bucket()
         self.assertTrue(bucket is not None)
-        self.assertEqual(bucket.name, bucket_name)
         for key in bucket.list():
             key.delete()
 
@@ -87,19 +85,17 @@ class TestBucketGetAllKeys(unittest.TestCase):
         self.assertEqual(list(result_set), [])
 
         # delete the bucket
-        self._s3_connection.delete_bucket(bucket_name)
+        self._s3_connection.delete_bucket(bucket.name)
 
     def test_get_all_keys(self):
         """
         test that we can retriev e all keys
         """
-        bucket_name = "com-spideroak-test-get-all-keys"
         key_names = ["test-key1", "test_key2", "test_key3", ]
 
         # create the bucket
-        bucket = self._s3_connection.create_bucket(bucket_name)
+        bucket = self._s3_connection.create_unique_bucket()
         self.assertTrue(bucket is not None)
-        self.assertEqual(bucket.name, bucket_name)
         for key in bucket.list():
             key.delete()
         
@@ -126,13 +122,12 @@ class TestBucketGetAllKeys(unittest.TestCase):
             key.delete()
         
         # delete the bucket
-        self._s3_connection.delete_bucket(bucket_name)
+        self._s3_connection.delete_bucket(bucket.name)
         
     def test_get_all_keys_tree(self):
         """
         test storing and retrieving a directory tree
         """
-        bucket_name = "com-spideroak-test-get-all-keys"
         # 2011-12-04 -- s3 clips leading slash
         key_names = [
             "aaa/b/cccc/1", 
@@ -146,9 +141,8 @@ class TestBucketGetAllKeys(unittest.TestCase):
         ]
 
         # create the bucket
-        bucket = self._s3_connection.create_bucket(bucket_name)
+        bucket = self._s3_connection.create_unique_bucket()
         self.assertTrue(bucket is not None)
-        self.assertEqual(bucket.name, bucket_name)
         for key in bucket.list():
             key.delete()
         
@@ -187,13 +181,12 @@ class TestBucketGetAllKeys(unittest.TestCase):
             key.delete()
         
         # delete the bucket
-        self._s3_connection.delete_bucket(bucket_name)
+        self._s3_connection.delete_bucket(bucket.name)
         
     def test_delimiter(self):
         """
         test using a delimiter
         """
-        bucket_name = "com-spideroak-test-get-all-keys"
         # 2011-12-04 -- s3 clips leading slash
         key_names = [
             "aaa/b/cccc/1", 
@@ -207,9 +200,8 @@ class TestBucketGetAllKeys(unittest.TestCase):
         ]
 
         # create the bucket
-        bucket = self._s3_connection.create_bucket(bucket_name)
+        bucket = self._s3_connection.create_unique_bucket()
         self.assertTrue(bucket is not None)
-        self.assertEqual(bucket.name, bucket_name)
         for key in bucket.list():
             key.delete()
         
@@ -239,7 +231,7 @@ class TestBucketGetAllKeys(unittest.TestCase):
             key.delete()
         
         # delete the bucket
-        self._s3_connection.delete_bucket(bucket_name)
+        self._s3_connection.delete_bucket(bucket.name)
         
 if __name__ == "__main__":
     initialize_logging()

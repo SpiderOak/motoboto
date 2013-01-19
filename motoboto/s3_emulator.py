@@ -4,6 +4,7 @@ s3_emulator.py
 
 Emulate the functions of the object returned by boto.connect_s3
 """
+from datetime import datetime
 try:
     from httplib import CREATED
 except ImportError:
@@ -15,6 +16,7 @@ import sys
 from lumberyard.http_connection import HTTPConnection, LumberyardHTTPError
 from lumberyard.http_util import compute_default_hostname, \
         compute_default_collection_name, \
+        compute_reserved_collection_name, \
         compute_uri
 
 from motoboto.identity import load_identity_from_environment, \
@@ -146,6 +148,23 @@ class S3Emulator(object):
 
         return Bucket(self._identity, bucket_name)
 
+    def create_unique_bucket(self, access_control=None):
+        """
+        create a nimbus.io collection, similar to an s3 bucket
+        this bucket will have a unique name, not duplicating any existing bucket
+
+        The bucket name is be based on the current time. This will fail if
+        called within a short time.
+
+        See the documentation for ``create_bucket`` for more detail
+        """
+        current_time = datetime.utcnow()
+        time_string = current_time.strftime("%Y%m%d%H%M%S%f")
+        bucket_name = compute_reserved_collection_name(self._identity.user_name,
+                                                       time_string)
+
+        return self.create_bucket(bucket_name, access_control)
+ 
     def get_all_buckets(self):
         """
         List all collections for the user

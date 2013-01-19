@@ -63,22 +63,9 @@ class TestBucket(unittest.TestCase):
         """
         test basic bucket handling
         """
-        bucket_name = "com-spideroak-test-bucket"
-
-        # list all buckets, ours shouldn't be there
-        bucket_in_list = False
-        bucket_list = self._s3_connection.get_all_buckets()
-        print("bucket list")
-        for bucket in bucket_list:
-            print("    {0}".format(bucket.name))
-            if bucket.name == bucket_name:
-                bucket_in_list = True
-        self.assertFalse(bucket_in_list)
-
         # create the bucket
-        new_bucket = self._s3_connection.create_bucket(bucket_name)
+        new_bucket = self._s3_connection.create_unique_bucket()
         self.assertTrue(new_bucket is not None)
-        self.assertEqual(new_bucket.name, bucket_name)
         
         # list all buckets, ours should be there
         bucket_in_list = False
@@ -86,22 +73,12 @@ class TestBucket(unittest.TestCase):
         print("bucket list")
         for bucket in bucket_list:
             print("    {0}".format(bucket.name))
-            if bucket.name == bucket_name:
-                bucket_in_list = True
-        self.assertTrue(bucket_in_list)
-
-        # list all buckets, ours should be there
-        bucket_in_list = False
-        bucket_list = self._s3_connection.get_all_buckets()
-        print("bucket list")
-        for bucket in bucket_list:
-            print("    {0}".format(bucket.name))
-            if bucket.name == bucket_name:
+            if bucket.name == new_bucket.name:
                 bucket_in_list = True
         self.assertTrue(bucket_in_list)
 
         # delete the bucket
-        self._s3_connection.delete_bucket(bucket_name)
+        self._s3_connection.delete_bucket(new_bucket.name)
         
         # list all buckets, ours should be gone
         bucket_in_list = False
@@ -109,7 +86,7 @@ class TestBucket(unittest.TestCase):
         print("bucket list")
         for bucket in bucket_list:
             print("    {0}".format(bucket.name))
-            if bucket.name == bucket_name:
+            if bucket.name == new_bucket.name:
                 bucket_in_list = True
         self.assertFalse(bucket_in_list)
 

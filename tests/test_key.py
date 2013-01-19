@@ -69,14 +69,12 @@ class TestKey(unittest.TestCase):
         """
         test retrieving a key that doesn't exist
         """
-        bucket_name = "com-spideroak-test-nonexistent-key"
         key_name = "test-key"
         test_string = os.urandom(1024)
 
         # create the bucket
-        bucket = self._s3_connection.create_bucket(bucket_name)
+        bucket = self._s3_connection.create_unique_bucket()
         self.assertTrue(bucket is not None)
-        self.assertEqual(bucket.name, bucket_name)
 
         read_key = Key(bucket, key_name)
 
@@ -84,20 +82,18 @@ class TestKey(unittest.TestCase):
         self.assertRaises(http_exception, read_key.get_contents_as_string)
 
         # delete the bucket
-        self._s3_connection.delete_bucket(bucket_name)
+        self._s3_connection.delete_bucket(bucket.name)
         
     def test_key_with_strings(self):
         """
         test simple key 'from_string' and 'as_string' functions
         """
-        bucket_name = "com-spideroak-test-key-with-strings"
         key_name = "test-key"
         test_string = os.urandom(1024)
 
         # create the bucket
-        bucket = self._s3_connection.create_bucket(bucket_name)
+        bucket = self._s3_connection.create_unique_bucket()
         self.assertTrue(bucket is not None)
-        self.assertEqual(bucket.name, bucket_name)
 
         # create an empty key
         write_key = Key(bucket)
@@ -123,14 +119,13 @@ class TestKey(unittest.TestCase):
         self.assertFalse(write_key.exists())
         
         # delete the bucket
-        self._s3_connection.delete_bucket(bucket_name)
+        self._s3_connection.delete_bucket(bucket.name)
         
     def test_key_with_files(self):
         """
         test simple key 'from_file' and 'to_file' functions
         """
         log = logging.getLogger("test_key_with_files")
-        bucket_name = "com-spideroak-test-key-with-files"
         key_name = "A" * 1024
         test_file_path = os.path.join(
             test_dir_path, "test_key_with_files-orignal"
@@ -147,9 +142,8 @@ class TestKey(unittest.TestCase):
                 bytes_written += buffer_size
 
         # create the bucket
-        bucket = self._s3_connection.create_bucket(bucket_name)
+        bucket = self._s3_connection.create_unique_bucket()
         self.assertTrue(bucket is not None)
-        self.assertEqual(bucket.name, bucket_name)
 
         # create an empty key
         write_key = Key(bucket)
@@ -181,7 +175,7 @@ class TestKey(unittest.TestCase):
         self.assertFalse(write_key.exists())
         
         # delete the bucket
-        self._s3_connection.delete_bucket(bucket_name)
+        self._s3_connection.delete_bucket(bucket.name)
         
     def test_key_with_files_and_callback(self):
         """
@@ -196,7 +190,6 @@ class TestKey(unittest.TestCase):
                                                     total_bytes))
 
         log = logging.getLogger("test_key_with_files")
-        bucket_name = "com-spideroak-test-key-with-files-and-callback"
         key_name = "A" * 1024
         test_file_path = os.path.join(
             test_dir_path, "test_key_with_files-orignal"
@@ -213,9 +206,8 @@ class TestKey(unittest.TestCase):
                 bytes_written += buffer_size
 
         # create the bucket
-        bucket = self._s3_connection.create_bucket(bucket_name)
+        bucket = self._s3_connection.create_unique_bucket()
         self.assertTrue(bucket is not None)
-        self.assertEqual(bucket.name, bucket_name)
 
         # create an empty key
         write_key = Key(bucket)
@@ -253,22 +245,20 @@ class TestKey(unittest.TestCase):
         self.assertFalse(write_key.exists())
         
         # delete the bucket
-        self._s3_connection.delete_bucket(bucket_name)
+        self._s3_connection.delete_bucket(bucket.name)
         
     def test_key_with_meta(self):
         """
         test simple key with metadata added
         """
-        bucket_name = "com-spideroak-test-key-with-meta"
         key_name = "test-key"
         test_string = os.urandom(1024)
         meta_key = "meta_key"
         meta_value = "pork"
 
         # create the bucket
-        bucket = self._s3_connection.create_bucket(bucket_name)
+        bucket = self._s3_connection.create_unique_bucket()
         self.assertTrue(bucket is not None)
-        self.assertEqual(bucket.name, bucket_name)
 
         # create an empty key
         write_key = Key(bucket)
@@ -300,13 +290,12 @@ class TestKey(unittest.TestCase):
         self.assertFalse(write_key.exists())
         
         # delete the bucket
-        self._s3_connection.delete_bucket(bucket_name)
+        self._s3_connection.delete_bucket(bucket.name)
         
     def test_write_over_key_with_meta(self):
         """
         test that metadata does not persist when a key is written over
         """
-        bucket_name = "com-spideroak-test-write-over-key-with-meta"
         key_name = "test-key"
         test_string = os.urandom(1024)
         test_string_1 = os.urandom(1024)
@@ -314,9 +303,8 @@ class TestKey(unittest.TestCase):
         meta_value = "pork"
 
         # create the bucket
-        bucket = self._s3_connection.create_bucket(bucket_name)
+        bucket = self._s3_connection.create_unique_bucket()
         self.assertTrue(bucket is not None)
-        self.assertEqual(bucket.name, bucket_name)
 
         # create an empty key
         write_key = Key(bucket)
@@ -355,7 +343,7 @@ class TestKey(unittest.TestCase):
         self.assertFalse(write_key.exists())
         
         # delete the bucket
-        self._s3_connection.delete_bucket(bucket_name)
+        self._s3_connection.delete_bucket(bucket.name)
         
 if __name__ == "__main__":
     initialize_logging()

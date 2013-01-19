@@ -55,7 +55,7 @@ class TestSlice(unittest.TestCase):
         if os.path.exists(test_dir_path):
             shutil.rmtree(test_dir_path)
 
-    def _set_up_single_archive(self, bucket_name):
+    def _set_up_single_archive(self):
         key_name = "test-key"
         test_file_path = os.path.join(
             test_dir_path, "test-orignal"
@@ -68,16 +68,15 @@ class TestSlice(unittest.TestCase):
             output_file.write(test_data)
 
         # create the bucket
-        bucket = self._s3_connection.create_bucket(bucket_name)
+        bucket = self._s3_connection.create_unique_bucket()
         self.assertTrue(bucket is not None)
-        self.assertEqual(bucket.name, bucket_name)
 
         # create an empty key
         write_key = Key(bucket)
 
         # set the name
         write_key.name = key_name
-#        self.assertFalse(write_key.exists())
+        self.assertFalse(write_key.exists())
 
         # upload some data
         with open(test_file_path, "rb") as archive_file:
@@ -94,7 +93,7 @@ class TestSlice(unittest.TestCase):
         # delete the bucket
         self._s3_connection.delete_bucket(key._bucket.name)
 
-    def _set_up_multipart_archive(self, bucket_name):
+    def _set_up_multipart_archive(self):
         key_name = "test_key"
         path_template = os.path.join(
             test_dir_path, "test_simple_multipart_{0:02}"
@@ -113,9 +112,8 @@ class TestSlice(unittest.TestCase):
                 output_file.write(test_blob)
 
         # create the bucket
-        bucket = self._s3_connection.create_bucket(bucket_name)
+        bucket = self._s3_connection.create_unique_bucket()
         self.assertTrue(bucket is not None)
-        self.assertEqual(bucket.name, bucket_name)
 
         # assert that we have no uploads in progress
         upload_list = bucket.get_all_multipart_uploads()
@@ -144,8 +142,7 @@ class TestSlice(unittest.TestCase):
         """
         test get_contents_to_file for the whole archive
         """
-        bucket_name = "com-spideroak-test-entire-single-part"
-        test_data, key = self._set_up_single_archive(bucket_name)
+        test_data, key = self._set_up_single_archive()
 
         # read back the data
         retrieve_file_path = os.path.join(
@@ -168,8 +165,7 @@ class TestSlice(unittest.TestCase):
         """
         test get_contents_to_file for various slices
         """
-        bucket_name = "com-spideroak-test-slice-single-part"
-        test_data, key = self._set_up_single_archive(bucket_name)
+        test_data, key = self._set_up_single_archive()
         test_params = [(0, 1024), (1024, 2048), (len(test_data)-2048, 2048)]
 
         for slice_offset, slice_size in test_params:
@@ -200,8 +196,7 @@ class TestSlice(unittest.TestCase):
         """
         test get_contents_to_file for the whole archive
         """
-        bucket_name = "com-spideroak-test-slice-entire-multipart"
-        test_data, key = self._set_up_multipart_archive(bucket_name)
+        test_data, key = self._set_up_multipart_archive()
 
         # read back the data
         retrieve_file_path = os.path.join(
@@ -224,8 +219,7 @@ class TestSlice(unittest.TestCase):
         """
         test get_contents_to_file for various slices of multipart
         """
-        bucket_name = "com-spideroak-test-slice-multipart"
-        test_data, key = self._set_up_multipart_archive(bucket_name)
+        test_data, key = self._set_up_multipart_archive()
         # the points where multiparts join
         seams = range(0, 
                       _multipart_part_size*_multipart_part_count, 

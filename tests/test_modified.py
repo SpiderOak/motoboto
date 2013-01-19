@@ -55,7 +55,7 @@ class TestModified(unittest.TestCase):
         if os.path.exists(test_dir_path):
             shutil.rmtree(test_dir_path)
 
-    def _set_up_single_archive(self, bucket_name, key_name):
+    def _set_up_single_archive(self, key_name):
         test_file_path = os.path.join(
             test_dir_path, "test-orignal"
         )
@@ -67,16 +67,15 @@ class TestModified(unittest.TestCase):
             output_file.write(test_data)
 
         # create the bucket
-        bucket = self._s3_connection.create_bucket(bucket_name)
+        bucket = self._s3_connection.create_unique_bucket()
         self.assertTrue(bucket is not None)
-        self.assertEqual(bucket.name, bucket_name)
 
         # create an empty key
         write_key = Key(bucket)
 
         # set the name
         write_key.name = key_name
-#        self.assertFalse(write_key.exists())
+        self.assertFalse(write_key.exists())
 
         # upload some data
         with open(test_file_path, "rb") as archive_file:
@@ -98,7 +97,6 @@ class TestModified(unittest.TestCase):
         """
         test restrictions on date modified
         """
-        bucket_name = "com-spideroak-modified"
         key_name = "test-key.jpg"
 
         # this is a time before the file was last modified
@@ -106,7 +104,7 @@ class TestModified(unittest.TestCase):
 
         time.sleep(1.0)
 
-        test_data, key = self._set_up_single_archive(bucket_name, key_name)
+        test_data, key = self._set_up_single_archive(key_name)
 
         time.sleep(1.0)
 
@@ -149,5 +147,3 @@ class TestModified(unittest.TestCase):
 if __name__ == "__main__":
     initialize_logging()
     unittest.main()
-
-

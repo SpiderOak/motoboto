@@ -90,13 +90,10 @@ class TestBucketGetAllVersions(unittest.TestCase):
         """
         test get_all_versions() on an empty buckey
         """
-        bucket_name = "com-spideroak-test-get-all-versions-empty-bucket"
-
         # create the bucket
-        bucket = self._s3_connection.create_bucket(bucket_name)
+        bucket = self._s3_connection.create_unique_bucket()
         bucket.configure_versioning(True)
         self.assertTrue(bucket is not None)
-        self.assertEqual(bucket.name, bucket_name)
         _clear_keys(bucket)
 
         # try a simple get_all_versions()
@@ -109,14 +106,12 @@ class TestBucketGetAllVersions(unittest.TestCase):
         """
         test that we get multiple versions of a file
         """
-        bucket_name = "com-spideroak-test-get-all-versions-of-one-file"
         key_names = ["test-key1", "test-key1", "test-key1", ]
 
         # create the bucket
-        bucket = self._s3_connection.create_bucket(bucket_name)
+        bucket = self._s3_connection.create_unique_bucket()
         bucket.configure_versioning(True)
         self.assertTrue(bucket is not None)
-        self.assertEqual(bucket.name, bucket_name)
         _clear_keys(bucket)
         
         keys_with_data = _create_some_keys_with_data(bucket, key_names)
@@ -141,7 +136,6 @@ class TestBucketGetAllVersions(unittest.TestCase):
         """
         test storing and retrieving a directory tree
         """
-        bucket_name = "com-spideroak-test-get-all-versions-tree"
         # 2011-12-04 -- s3 clips leading slash
         key_names = [
             "aaa/b/cccc/1", 
@@ -155,10 +149,9 @@ class TestBucketGetAllVersions(unittest.TestCase):
         ]
 
         # create the bucket
-        bucket = self._s3_connection.create_bucket(bucket_name)
+        bucket = self._s3_connection.create_unique_bucket()
         bucket.configure_versioning(True)
         self.assertTrue(bucket is not None)
-        self.assertEqual(bucket.name, bucket_name)
         _clear_keys(bucket)
         
         keys = _create_some_keys(bucket, key_names)
@@ -184,7 +177,6 @@ class TestBucketGetAllVersions(unittest.TestCase):
         """
         test using a delimiter
         """
-        bucket_name = "com-spideroak-test-get-all-versions-delimter"
         # 2011-12-04 -- s3 clips leading slash
         key_names = [
             "aaa/b/cccc/1", 
@@ -198,10 +190,9 @@ class TestBucketGetAllVersions(unittest.TestCase):
         ]
 
         # create the bucket
-        bucket = self._s3_connection.create_bucket(bucket_name)
+        bucket = self._s3_connection.create_unique_bucket()
         bucket.configure_versioning(True)
         self.assertTrue(bucket is not None)
-        self.assertEqual(bucket.name, bucket_name)
         _clear_keys(bucket)
         
         keys = _create_some_keys(bucket, key_names)
@@ -225,7 +216,6 @@ class TestBucketGetAllVersions(unittest.TestCase):
         """
         test using a marker
         """
-        bucket_name = "com-spideroak-test-get-all-versions-marker"
         # 2011-12-04 -- s3 clips leading slash
         key_names = [
             "aaa/b/cccc/1", 
@@ -240,10 +230,9 @@ class TestBucketGetAllVersions(unittest.TestCase):
         test_max = 3
 
         # create the bucket
-        bucket = self._s3_connection.create_bucket(bucket_name)
+        bucket = self._s3_connection.create_unique_bucket()
         bucket.configure_versioning(True)
         self.assertTrue(bucket is not None)
-        self.assertEqual(bucket.name, bucket_name)
         _clear_keys(bucket)
         
         keys = _create_some_keys(bucket, key_names)
@@ -270,4 +259,3 @@ class TestBucketGetAllVersions(unittest.TestCase):
 if __name__ == "__main__":
     initialize_logging()
     unittest.main()
-

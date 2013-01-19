@@ -88,12 +88,9 @@ class TestBucketGetAllKeys(unittest.TestCase):
         """
         test get_all_keys() on an empty buckey
         """
-        bucket_name = "com-spideroak-test-get-all-keys-empty-bucket"
-
         # create the bucket
-        bucket = self._s3_connection.create_bucket(bucket_name)
+        bucket = self._s3_connection.create_unique_bucket()
         self.assertTrue(bucket is not None)
-        self.assertEqual(bucket.name, bucket_name)
         _clear_keys(bucket)
 
         # try a simple get_all_keys()
@@ -106,17 +103,15 @@ class TestBucketGetAllKeys(unittest.TestCase):
         """
         test that the max keys parameter restricts the number of keys
         """
-        bucket_name = "com-spideroak-test-get-all-keys-max-keys"
         key_names = ["test_key1", "test_key2", "test_key3", ]
         test_max = len(key_names) - 1
 
         # create the bucket
-        bucket = self._s3_connection.create_bucket(bucket_name)
+        bucket = self._s3_connection.create_unique_bucket()
         self.assertTrue(bucket is not None)
-        self.assertEqual(bucket.name, bucket_name)
         _clear_keys(bucket)
         
-        keys = _create_some_keys(bucket, key_names)
+        _ = _create_some_keys(bucket, key_names)
 
         result = bucket.get_all_keys(max_keys=test_max)
         self.assertTrue(len(result) <= test_max, len(result))
@@ -127,7 +122,6 @@ class TestBucketGetAllKeys(unittest.TestCase):
         """
         test storing and retrieving a directory tree
         """
-        bucket_name = "com-spideroak-test-get-all-keys-tree"
         # 2011-12-04 -- s3 clips leading slash
         key_names = [
             "aaa/b/cccc/1", 
@@ -141,12 +135,11 @@ class TestBucketGetAllKeys(unittest.TestCase):
         ]
 
         # create the bucket
-        bucket = self._s3_connection.create_bucket(bucket_name)
+        bucket = self._s3_connection.create_unique_bucket()
         self.assertTrue(bucket is not None)
-        self.assertEqual(bucket.name, bucket_name)
         _clear_keys(bucket)
         
-        keys = _create_some_keys(bucket, key_names)
+        _ = _create_some_keys(bucket, key_names)
         
         result = bucket.get_all_keys(prefix="aaa")
         self.assertEqual(len(result), 7)
@@ -172,7 +165,6 @@ class TestBucketGetAllKeys(unittest.TestCase):
         """
         test using a delimiter
         """
-        bucket_name = "com-spideroak-test-get-all-keys-delimiter"
         # 2011-12-04 -- s3 clips leading slash
         key_names = [
             "aaa/b/cccc/1", 
@@ -186,12 +178,11 @@ class TestBucketGetAllKeys(unittest.TestCase):
         ]
 
         # create the bucket
-        bucket = self._s3_connection.create_bucket(bucket_name)
+        bucket = self._s3_connection.create_unique_bucket()
         self.assertTrue(bucket is not None)
-        self.assertEqual(bucket.name, bucket_name)
         _clear_keys(bucket)
         
-        keys = _create_some_keys(bucket, key_names)
+        _ = _create_some_keys(bucket, key_names)
         
         result = bucket.get_all_keys(delimiter="/")
         result_names = set()
@@ -212,7 +203,6 @@ class TestBucketGetAllKeys(unittest.TestCase):
         """
         test using a marker
         """
-        bucket_name = "com-spideroak-test-get-all-keys-marker"
         # 2011-12-04 -- s3 clips leading slash
         key_names = [
             "aaa/b/cccc/1", 
@@ -227,12 +217,11 @@ class TestBucketGetAllKeys(unittest.TestCase):
         test_max = 3
 
         # create the bucket
-        bucket = self._s3_connection.create_bucket(bucket_name)
+        bucket = self._s3_connection.create_unique_bucket()
         self.assertTrue(bucket is not None)
-        self.assertEqual(bucket.name, bucket_name)
         _clear_keys(bucket)
         
-        keys = _create_some_keys(bucket, key_names)
+        _ = _create_some_keys(bucket, key_names)
         
         test_marker = ""
         result_names = list()
@@ -242,7 +231,7 @@ class TestBucketGetAllKeys(unittest.TestCase):
                 break
             self.assertTrue(len(result) <= test_max)
             result_names.extend([key.name for key in result])
-            test_marker=result[-1].name
+            test_marker = result[-1].name
 
         self.assertEqual(len(result_names), len(key_names))
         self.assertEqual(set(result_names), set(key_names))
@@ -252,4 +241,3 @@ class TestBucketGetAllKeys(unittest.TestCase):
 if __name__ == "__main__":
     initialize_logging()
     unittest.main()
-

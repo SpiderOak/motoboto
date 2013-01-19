@@ -72,7 +72,6 @@ class TestResumableDownloadHandler(unittest.TestCase):
         test get_contents_to_file without any interruption. 
         """
         log = logging.getLogger("test_uninterrupted_resumable")
-        bucket_name = "com-spideroak-test-uninterrupted-resumable"
         key_name = "test-key"
         test_file_path = os.path.join(
             test_dir_path, "test-orignal"
@@ -89,16 +88,15 @@ class TestResumableDownloadHandler(unittest.TestCase):
                 bytes_written += buffer_size
 
         # create the bucket
-        bucket = self._s3_connection.create_bucket(bucket_name)
+        bucket = self._s3_connection.create_unique_bucket()
         self.assertTrue(bucket is not None)
-        self.assertEqual(bucket.name, bucket_name)
 
         # create an empty key
         write_key = Key(bucket)
 
         # set the name
         write_key.name = key_name
-#        self.assertFalse(write_key.exists())
+        self.assertFalse(write_key.exists())
 
         # upload some data
         with open(test_file_path, "rb") as archive_file:
@@ -131,14 +129,13 @@ class TestResumableDownloadHandler(unittest.TestCase):
         self.assertFalse(write_key.exists())
         
         # delete the bucket
-        self._s3_connection.delete_bucket(bucket_name)
+        self._s3_connection.delete_bucket(bucket.name)
         
     def test_interrupted_resumable(self):
         """
         test get_contents_to_file with a simulated interruption. 
         """
         log = logging.getLogger("test_uninterrupted_resumable")
-        bucket_name = "com-spideroak-test-interruped-resumable"
         key_name = "test-key"
         test_file_path = os.path.join(
             test_dir_path, "test-orignal"
@@ -154,9 +151,8 @@ class TestResumableDownloadHandler(unittest.TestCase):
             output_file.write(test_data)
 
         # create the bucket
-        bucket = self._s3_connection.create_bucket(bucket_name)
+        bucket = self._s3_connection.create_unique_bucket()
         self.assertTrue(bucket is not None)
-        self.assertEqual(bucket.name, bucket_name)
 
         # create an empty key
         write_key = Key(bucket)
@@ -209,7 +205,7 @@ class TestResumableDownloadHandler(unittest.TestCase):
         self.assertFalse(write_key.exists())
         
         # delete the bucket
-        self._s3_connection.delete_bucket(bucket_name)
+        self._s3_connection.delete_bucket(bucket.name)
         
 if __name__ == "__main__":
     initialize_logging()
