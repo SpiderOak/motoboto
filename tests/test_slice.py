@@ -93,8 +93,7 @@ class TestSlice(unittest.TestCase):
         # delete the bucket
         self._s3_connection.delete_bucket(key._bucket.name)
 
-    def _set_up_multipart_archive(self):
-        key_name = "test_key"
+    def _set_up_multipart_archive(self, key_name):
         path_template = os.path.join(
             test_dir_path, "test_simple_multipart_{0:02}"
         )
@@ -196,7 +195,7 @@ class TestSlice(unittest.TestCase):
         """
         test get_contents_to_file for the whole archive
         """
-        test_data, key = self._set_up_multipart_archive()
+        test_data, key = self._set_up_multipart_archive("test_entire_multipart")
 
         # read back the data
         retrieve_file_path = os.path.join(
@@ -219,7 +218,7 @@ class TestSlice(unittest.TestCase):
         """
         test get_contents_to_file for various slices of multipart
         """
-        test_data, key = self._set_up_multipart_archive()
+        test_data, key = self._set_up_multipart_archive("test_slice_multipart")
         # the points where multiparts join
         seams = range(0, 
                       _multipart_part_size*_multipart_part_count, 
@@ -254,6 +253,9 @@ class TestSlice(unittest.TestCase):
             self.assertEqual(len(retrieved_data), 
                              len(test_data[slice_offset:slice_offset+slice_size]),
                              (len(retrieved_data), slice_offset, slice_size, ))
+            for i, (r, t) in enumerate(zip(retrieved_data, 
+                                          test_data[slice_offset:slice_offset+slice_size])):
+                self.assertEqual(r, t, (i, slice_offset, slice_size))
             self.assertTrue(retrieved_data == \
                             test_data[slice_offset:slice_offset+slice_size],
                             (slice_offset, slice_size, ))
