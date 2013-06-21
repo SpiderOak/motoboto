@@ -96,11 +96,9 @@ class TestVersions(unittest.TestCase):
         * verify that the new version is accessible
 
         """
-    def test_multiple_versions_of_one_file(self):
-        """
-        test that we get multiple versions of a file
-        """
+        log = logging.getLogger("test_delete_version_followed_by_archive")
         key_names = ["test-key1", ]
+        iteration_count = 10
 
         # create the bucket
         bucket = self._s3_connection.create_unique_bucket()
@@ -110,24 +108,27 @@ class TestVersions(unittest.TestCase):
         # archive a key 
         keys_with_data = _create_some_keys_with_data(bucket, key_names)
         self.assertEqual(len(keys_with_data), 1)
-        original_key, _ = keys_with_data[0]
-        self.assertTrue(original_key.exists())
+        test_key, test_data = keys_with_data[0]
 
-        # delete the specific version we just archived
-        original_key.delete(version_id=original_key.version_id)
-        self.assertFalse(original_key.exists())
+        for index in range(iteration_count):
+            log.info("iteration {0}".format(index+1))
 
-        # archive another version of the key 
-        keys_with_data = _create_some_keys_with_data(bucket, key_names)
-        self.assertEqual(len(keys_with_data), 1)
-        new_key, expected_data = keys_with_data[0]
-        self.assertTrue(new_key.exists())
+            self.assertTrue(test_key.exists())
 
-        # try to retrieve the key
-        read_data = new_key.get_contents_as_string()
-        self.assertEqual(read_data, 
-                         expected_data, 
-                         new_key.name)
+            # try to retrieve the key
+            read_data = test_key.get_contents_as_string()
+            self.assertEqual(read_data, 
+                             test_data, 
+                             test_key.name)
+
+            # delete the specific version we just archived
+            test_key.delete(version_id=test_key.version_id)
+            self.assertFalse(test_key.exists())
+
+            # archive another version of the key 
+            keys_with_data = _create_some_keys_with_data(bucket, key_names)
+            self.assertEqual(len(keys_with_data), 1)
+            test_key, test_data = keys_with_data[0]
 
         _clear_bucket(self._s3_connection, bucket)
                 
