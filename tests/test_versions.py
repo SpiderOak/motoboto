@@ -113,7 +113,8 @@ class TestVersions(unittest.TestCase):
         for index in range(iteration_count):
             log.info("iteration {0}".format(index+1))
 
-            self.assertTrue(test_key.exists())
+            existing_keys = bucket.get_all_versions(prefix=key_names[0])
+            self.assertEqual(len(existing_keys), 1)
 
             # try to retrieve the key
             read_data = test_key.get_contents_as_string()
